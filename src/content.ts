@@ -7,6 +7,7 @@ import {
   readRepoMeta,
 } from './dom/anchors';
 import { ensurePinnedSection, type SectionActions } from './features/pinned-section';
+import { ensureDrawerSection } from './features/drawer-section';
 import { decorateTopRepoItems, type ToggleActions } from './features/top-repo-pin';
 import { ensureRepoPinButton, type RepoButtonActions } from './features/repo-pin-button';
 import { observePage, type ObserverHandle } from './lib/observe';
@@ -110,6 +111,9 @@ export async function startContent(doc: Document = document): Promise<() => void
     } else {
       for (const id of Object.values(SECTION_IDS)) doc.getElementById(id)?.remove();
     }
+
+    // The ☰ navigation drawer exists on every page, but only while it is open.
+    ensureDrawerSection(pins, view, doc);
 
     if (hasRepoHeader(url)) {
       const ref = currentRepo();

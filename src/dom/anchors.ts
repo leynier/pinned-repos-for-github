@@ -12,6 +12,8 @@ export const SECTION_IDS = {
   mobile: 'pinned-repos-ext-mobile',
 } as const;
 
+export const DRAWER_ID = 'pinned-repos-ext-drawer';
+
 export type SectionKind = keyof typeof SECTION_IDS;
 
 const TOP_REPOS_TEXT = /^\s*top repositories\s*$/i;
@@ -150,4 +152,24 @@ export function readOwnerTypes(items: readonly Element[]): Map<string, boolean> 
       owners.set(ref.owner.toLowerCase(), avatar.classList.contains('avatar-user'));
   }
   return owners;
+}
+
+/**
+ * "Top repositories" group in the global navigation drawer (the ☰ menu, a React Primer `NavList`
+ * rendered in a dialog portal only while open). Anchored on `data-testid` / `data-component`,
+ * never on Primer's hashed classes.
+ */
+export function findDrawerTopRepos(doc: Document = document): HTMLElement | null {
+  const bySearch = doc
+    .querySelector('[data-testid="dynamic-side-panel-items-search-button"]')
+    ?.closest<HTMLElement>('[data-component="ActionList.Group"]');
+  if (bySearch && !isOwn(bySearch)) return bySearch;
+  for (const heading of doc.querySelectorAll<HTMLElement>(
+    '[role="dialog"] [data-component="NavList.GroupHeading"]',
+  )) {
+    if (!TOP_REPOS_TEXT.test(heading.textContent ?? '') || isOwn(heading)) continue;
+    const group = heading.closest<HTMLElement>('[data-component="ActionList.Group"]');
+    if (group) return group;
+  }
+  return null;
 }

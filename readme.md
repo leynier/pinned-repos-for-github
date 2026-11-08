@@ -12,6 +12,7 @@ Pinned Repos for GitHub adds a **Pinned repositories** section right above _Top 
 
 - **You decide what's on top.** Pin the repos you actually work on, not the ones an algorithm guessed.
 - **Feels native.** The section reuses GitHub's own sidebar look, so it fits light and dark themes without looking bolted on.
+- **Everywhere you navigate.** Your pins also appear in the ☰ navigation menu on every GitHub page, right above _Top repositories_.
 - **Pin from anywhere.** Use the 📌 button that appears when you hover over a _Top repositories_ item, the **Pin** button on any repository page, or type `owner/repo` in the extension popup.
 - **Always easy to scan.** Pins are sorted alphabetically by owner and name, so you always know where to look.
 - **Scales with you.** Pin up to 500 repositories. The sidebar shows the first 7 (change it in the popup) with _Show more_ for the rest, _Find a repository…_ searches all of them, and the heading collapses the section when you want it out of the way.

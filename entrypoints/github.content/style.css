@@ -99,11 +99,13 @@ li:focus-within > div > .prg-row-button,
 }
 
 .prg-missing img,
-.prg-missing a.markdown-title {
+.prg-missing a.markdown-title,
+.prg-missing [data-component='ActionList.Item.Label'] {
   opacity: 0.55;
 }
 
-.prg-missing a.markdown-title {
+.prg-missing a.markdown-title,
+.prg-missing [data-component='ActionList.Item.Label'] {
   text-decoration: line-through;
   text-decoration-color: var(--fgColor-muted, var(--color-fg-muted));
 }
