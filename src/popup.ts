@@ -1,4 +1,5 @@
 import {
+  LIMIT_MESSAGE,
   MAX_PINS,
   addPin,
   getPins,
@@ -12,7 +13,7 @@ import { getSettings, setVisibleCount, watchSettings } from './storage/settings'
 
 const MESSAGES: Record<Exclude<AddPinResult, 'added'>, string> = {
   exists: 'That repository is already pinned.',
-  limit: `You can pin up to ${MAX_PINS} repositories. Unpin one first.`,
+  limit: LIMIT_MESSAGE,
   invalid: 'Enter a repository as owner/repo or paste its GitHub URL.',
 };
 

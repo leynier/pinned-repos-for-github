@@ -14,11 +14,11 @@ describe('settings', () => {
     expect(await getSettings()).toEqual({ visibleCount: 7 });
   });
 
-  it('clamps the visible count to 1..100', () => {
+  it('clamps the visible count to 1..500', () => {
     expect(clampVisibleCount(0)).toBe(1);
     expect(clampVisibleCount('12')).toBe(12);
     expect(clampVisibleCount(4.6)).toBe(5);
-    expect(clampVisibleCount(1000)).toBe(100);
+    expect(clampVisibleCount(1000)).toBe(500);
     expect(clampVisibleCount('abc')).toBe(7);
     expect(sanitizeSettings(null)).toEqual({ visibleCount: 7 });
   });
