@@ -3,6 +3,7 @@
   "description": "Pin your favorite repositories to the top of your GitHub home dashboard.",
   "version": "0.1.0",
   "private": true,
+  "license": "MIT",
   "type": "module",
   "scripts": {
     "dev": "wxt",
