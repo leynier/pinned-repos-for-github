@@ -26,4 +26,4 @@ Out of scope:
 
 ## Design notes for reviewers
 
-The extension asks only for `storage` and `https://github.com/*`, runs no remote code, makes no network requests of its own (avatars are plain `<img>` loads from `github.com`), and builds its UI with DOM APIs and `textContent` rather than injecting HTML from data.
+The extension asks only for `storage` and `https://github.com/*`, runs no remote code, only talks to `github.com` (avatars are plain `<img>` loads, and the daily availability check sends same-origin `HEAD` requests to pinned repository pages), and builds its UI with DOM APIs and `textContent` rather than injecting HTML from data.
