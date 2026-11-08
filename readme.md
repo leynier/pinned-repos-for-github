@@ -14,9 +14,12 @@ Pinned Repos for GitHub adds a **Pinned repositories** section right above _Top 
 - **Feels native.** The section reuses GitHub's own sidebar look, so it fits light and dark themes without looking bolted on.
 - **Pin from anywhere.** Use the 📌 button that appears when you hover over a _Top repositories_ item, the **Pin** button on any repository page, or type `owner/repo` in the extension popup.
 - **Always easy to scan.** Pins are sorted alphabetically by owner and name, so you always know where to look.
-- **Scales with you.** The sidebar shows your first 7 pins (change it in the popup) with _Show more_ for the rest, and _Find a repository…_ searches all of them.
-- **Synced across your browsers.** Pins are stored with `chrome.storage.sync`, so they follow you to every Chrome where you're signed in.
-- **No token, no server, no tracking.** It doesn't ask for a GitHub token, doesn't call the GitHub API, and sends your data nowhere. It only needs permission to run on `github.com` and to store your pins.
+- **Scales with you.** Pin up to 500 repositories. The sidebar shows the first 7 (change it in the popup) with _Show more_ for the rest, _Find a repository…_ searches all of them, and the heading collapses the section when you want it out of the way.
+- **Stays correct.** Renamed or transferred repositories are followed automatically, and ones that were deleted or that you lost access to are marked, not silently dropped.
+- **Yours to keep.** Export your pins and settings as JSON, and import them in any browser, merging or replacing.
+- **Synced across your browsers.** Pins are stored with `chrome.storage.sync`, so they follow you to every Chrome (or Edge, or Firefox) where you're signed in.
+- **Chrome, Edge and Firefox.** One codebase, built for each browser.
+- **No token, no server, no tracking.** It doesn't ask for a GitHub token, doesn't call the GitHub API, and sends your data nowhere. It only talks to `github.com` and only needs permission to run there and to store your pins.
 - **Leaves GitHub alone.** _Top repositories_ stays exactly as it is. The extension only adds a section above it.
 
 ## How it works
@@ -43,27 +46,32 @@ Pinned Repos for GitHub adds a **Pinned repositories** section right above _Top 
   1. Install [Node.js](https://nodejs.org) 22+ and [pnpm](https://pnpm.io).
   2. Clone this repository and run `pnpm install && pnpm build`.
   3. Open `chrome://extensions`, turn on **Developer mode**, click **Load unpacked**, and select the `.output/chrome-mv3` folder.
+  - **Edge:** run `pnpm build:edge` and load `.output/edge-mv3` from `edge://extensions` the same way.
+  - **Firefox:** run `pnpm build:firefox`, open `about:debugging#/runtime/this-firefox`, click **Load Temporary Add-on…**, and pick `.output/firefox-mv2/manifest.json`.
 
 ## Development
 
 ```sh
-pnpm dev       # Chrome with the extension and hot reload (separate profile)
-pnpm test      # unit tests (Vitest)
-pnpm e2e       # build and run the Playwright smoke tests against recorded GitHub pages
-pnpm zip       # package for the Chrome Web Store
+pnpm dev            # Chrome with the extension and hot reload (separate profile)
+pnpm dev:firefox    # the same in Firefox
+pnpm test           # unit tests (Vitest)
+pnpm e2e            # build and run the Playwright tests against recorded GitHub pages
+pnpm lint:firefox   # build for Firefox and lint it with web-ext
+pnpm zip            # Chrome Web Store package (zip:firefox and zip:edge for the others)
 ```
 
-GitHub selectors live in `src/dom/anchors.ts`, and the recorded page structure is in `tests/fixtures`.
+GitHub selectors live in `src/dom/anchors.ts`, and the recorded page structure is in `tests/fixtures`. CI runs every check on pull requests; pushing a `v*` tag that matches `package.json` publishes a GitHub release and submits to each store whose secrets are configured (see `.github/workflows/release.yml`).
 
 ## Roadmap
 
 - [x] Pinned repositories section on the GitHub home dashboard
 - [x] Pin and unpin from _Top repositories_ and from repository pages
 - [x] Alphabetical order
-- [ ] Import and export your pins as JSON
-- [ ] Detect renamed and deleted repositories automatically
+- [x] Import and export your pins as JSON
+- [x] Detect renamed and deleted repositories automatically
+- [x] Firefox and Edge builds
 - [ ] Chrome Web Store release
-- [ ] Firefox and Edge builds
+- [ ] Firefox Add-ons and Edge Add-ons releases
 
 ## Contributing
 
