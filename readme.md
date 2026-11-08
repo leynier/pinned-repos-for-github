@@ -14,6 +14,7 @@ Pinned Repos for GitHub adds a **Pinned repositories** section right above _Top 
 - **Feels native.** The section reuses GitHub's own sidebar look, so it fits light and dark themes without looking bolted on.
 - **Pin from anywhere.** Use the 📌 button that appears when you hover over a _Top repositories_ item, the **Pin** button on any repository page, or type `owner/repo` in the extension popup.
 - **Always easy to scan.** Pins are sorted alphabetically by owner and name, so you always know where to look.
+- **Scales with you.** The sidebar shows your first 7 pins (change it in the popup) with _Show more_ for the rest, and _Find a repository…_ searches all of them.
 - **Synced across your browsers.** Pins are stored with `chrome.storage.sync`, so they follow you to every Chrome where you're signed in.
 - **No token, no server, no tracking.** It doesn't ask for a GitHub token, doesn't call the GitHub API, and sends your data nowhere. It only needs permission to run on `github.com` and to store your pins.
 - **Leaves GitHub alone.** _Top repositories_ stays exactly as it is. The extension only adds a section above it.

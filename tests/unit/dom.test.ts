@@ -8,7 +8,7 @@ import {
   readRepoMeta,
   repoRefFromItem,
 } from '../../src/dom/anchors';
-import { EMPTY_TEXT, ensurePinnedSection } from '../../src/features/pinned-section';
+import { EMPTY_TEXT, NO_MATCH_TEXT, ensurePinnedSection } from '../../src/features/pinned-section';
 import { decorateTopRepoItems } from '../../src/features/top-repo-pin';
 import { REPO_BUTTON_ATTR, ensureRepoPinButton } from '../../src/features/repo-pin-button';
 import { isOwnMutation } from '../../src/lib/observe';
@@ -21,6 +21,7 @@ const pins: Pin[] = [
   { owner: 'mona', name: 'dotfiles', addedAt: 2, ownerIsUser: true },
 ];
 const noopSection = { unpin: vi.fn() };
+const view = { limit: 7 };
 
 describe('anchors', () => {
   it('finds desktop and mobile Top repositories', () => {
@@ -58,8 +59,8 @@ describe('pinned section', () => {
   it('is inserted right above Top repositories, once, on desktop and mobile', () => {
     const doc = loadFixture('dashboard.html');
     for (let i = 0; i < 3; i++) {
-      ensurePinnedSection('desktop', pins, noopSection, doc);
-      ensurePinnedSection('mobile', pins, noopSection, doc);
+      ensurePinnedSection('desktop', pins, view, noopSection, doc);
+      ensurePinnedSection('mobile', pins, view, noopSection, doc);
     }
     const desktop = doc.querySelectorAll(`#${SECTION_IDS.desktop}`);
     const mobile = doc.querySelectorAll(`#${SECTION_IDS.mobile}`);
@@ -73,7 +74,7 @@ describe('pinned section', () => {
 
   it('renders pins in the given order with native links and avatars', () => {
     const doc = loadFixture('dashboard.html');
-    const section = ensurePinnedSection('desktop', pins, noopSection, doc)!;
+    const section = ensurePinnedSection('desktop', pins, view, noopSection, doc)!;
     const items = [...section.querySelectorAll('li')];
     expect(items.map((item) => item.textContent?.replace(/\s+/g, ''))).toEqual([
       'acme/api-server',
@@ -91,24 +92,32 @@ describe('pinned section', () => {
     expect(items[0]!.querySelector('img')!.classList.contains('circle')).toBe(false);
   });
 
-  it('strips GitHub behaviors, ids and analytics from the clone', () => {
+  it('strips GitHub behaviors, ids and analytics from the clone, keeping New and search', () => {
     const doc = loadFixture('dashboard.html');
-    const section = ensurePinnedSection('desktop', pins, noopSection, doc)!;
+    const section = ensurePinnedSection('desktop', pins, view, noopSection, doc)!;
     const all = [section, ...section.querySelectorAll('*')];
     expect(all.some((el) => [...el.classList].some((c) => c.startsWith('js-')))).toBe(false);
     expect(all.some((el) => [...el.attributes].some((a) => a.name.startsWith('data-hydro')))).toBe(
       false,
     );
-    expect(section.querySelector('input, form, a[href="/new"], [role="search"]')).toBeNull();
+    expect(
+      all.some((el) => [...el.attributes].some((a) => a.name.startsWith('data-filterable'))),
+    ).toBe(false);
+    expect(section.querySelector('form')).toBeNull();
+    expect(section.querySelector('a[href="/new"]')?.textContent?.trim()).toBe('New');
     const ids = all.map((el) => el.id).filter(Boolean);
-    expect(ids).toEqual([SECTION_IDS.desktop, `${SECTION_IDS.desktop}-heading`]);
+    expect(ids).toEqual([
+      SECTION_IDS.desktop,
+      `${SECTION_IDS.desktop}-heading`,
+      `${SECTION_IDS.desktop}-filter`,
+    ]);
   });
 
   it('shows an empty state and re-renders when pins change', () => {
     const doc = loadFixture('dashboard.html');
-    const section = ensurePinnedSection('desktop', [], noopSection, doc)!;
+    const section = ensurePinnedSection('desktop', [], view, noopSection, doc)!;
     expect(section.textContent).toContain(EMPTY_TEXT);
-    ensurePinnedSection('desktop', pins, noopSection, doc);
+    ensurePinnedSection('desktop', pins, view, noopSection, doc);
     expect(section.textContent).not.toContain(EMPTY_TEXT);
     expect(section.querySelectorAll('li')).toHaveLength(2);
   });
@@ -116,19 +125,19 @@ describe('pinned section', () => {
   it('unpins from the row button', () => {
     const doc = loadFixture('dashboard.html');
     const unpin = vi.fn();
-    const section = ensurePinnedSection('desktop', pins, { unpin }, doc)!;
+    const section = ensurePinnedSection('desktop', pins, view, { unpin }, doc)!;
     section.querySelector<HTMLButtonElement>('button[aria-label="Unpin mona/dotfiles"]')!.click();
     expect(unpin).toHaveBeenCalledWith(pins[1]);
   });
 
   it('re-inserts the section when GitHub replaces Top repositories', () => {
     const doc = loadFixture('dashboard.html');
-    ensurePinnedSection('desktop', pins, noopSection, doc);
+    ensurePinnedSection('desktop', pins, view, noopSection, doc);
     const old = findDesktopTopRepos(doc)!;
     const fresh = old.cloneNode(true) as HTMLElement;
     doc.getElementById(SECTION_IDS.desktop)!.remove();
     old.replaceWith(fresh);
-    ensurePinnedSection('desktop', pins, noopSection, doc);
+    ensurePinnedSection('desktop', pins, view, noopSection, doc);
     expect(doc.getElementById(SECTION_IDS.desktop)?.nextElementSibling).toBe(fresh);
   });
 
@@ -137,10 +146,88 @@ describe('pinned section', () => {
     doc.querySelector('aside')!.remove();
     doc.querySelector('nav')!.remove();
     const before = doc.body.innerHTML;
-    expect(ensurePinnedSection('desktop', pins, noopSection, doc)).toBeNull();
-    expect(ensurePinnedSection('mobile', pins, noopSection, doc)).toBeNull();
+    expect(ensurePinnedSection('desktop', pins, view, noopSection, doc)).toBeNull();
+    expect(ensurePinnedSection('mobile', pins, view, noopSection, doc)).toBeNull();
     expect(decorateTopRepoItems(() => false, { toggle: vi.fn() }, doc)).toBe(0);
     expect(doc.body.innerHTML).toBe(before);
+  });
+});
+
+describe('pinned section filter and Show more', () => {
+  const many: Pin[] = Array.from({ length: 10 }, (_, i) => ({
+    owner: 'mona',
+    name: `repo${i + 1}`,
+    addedAt: i,
+  }));
+  const shown = (section: HTMLElement) =>
+    [...section.querySelectorAll('li.prg-item a.markdown-title')].map((a) =>
+      a.textContent?.replace(/\s+/g, ''),
+    );
+  const type = (input: HTMLInputElement, value: string) => {
+    input.value = value;
+    input.dispatchEvent(new Event('input'));
+  };
+
+  it('shows the first N pins and expands with Show more', () => {
+    const doc = loadFixture('dashboard.html');
+    const section = ensurePinnedSection('desktop', many, view, noopSection, doc)!;
+    expect(shown(section)).toHaveLength(7);
+    const more = section.querySelector<HTMLButtonElement>('button.prg-more')!;
+    expect(more.hidden).toBe(false);
+    expect(more.textContent).toBe('Show more');
+    more.click();
+    expect(shown(section)).toHaveLength(10);
+    expect(more.textContent).toBe('Show less');
+    more.click();
+    expect(shown(section)).toHaveLength(7);
+  });
+
+  it('hides Show more when every pin fits, and follows the configured limit', () => {
+    const doc = loadFixture('dashboard.html');
+    const section = ensurePinnedSection('desktop', many, { limit: 20 }, noopSection, doc)!;
+    expect(shown(section)).toHaveLength(10);
+    expect(section.querySelector<HTMLButtonElement>('button.prg-more')!.hidden).toBe(true);
+    ensurePinnedSection('desktop', many, { limit: 3 }, noopSection, doc);
+    expect(shown(section)).toEqual(['mona/repo1', 'mona/repo2', 'mona/repo3']);
+  });
+
+  it('filters across all pins, not only the visible ones', () => {
+    const doc = loadFixture('dashboard.html');
+    const section = ensurePinnedSection('desktop', many, view, noopSection, doc)!;
+    const input = section.querySelector<HTMLInputElement>('input.prg-filter')!;
+    expect(input.placeholder).toBe('Find a repository…');
+    type(input, 'REPO1');
+    expect(shown(section)).toEqual(['mona/repo1', 'mona/repo10']);
+    expect(section.querySelector<HTMLButtonElement>('button.prg-more')!.hidden).toBe(true);
+    type(input, 'nothing');
+    expect(section.textContent).toContain(NO_MATCH_TEXT);
+    input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+    expect(input.value).toBe('');
+    expect(shown(section)).toHaveLength(7);
+  });
+
+  it('keeps the filter text when pins change', () => {
+    const doc = loadFixture('dashboard.html');
+    const section = ensurePinnedSection('desktop', many, view, noopSection, doc)!;
+    type(section.querySelector<HTMLInputElement>('input.prg-filter')!, 'repo2');
+    ensurePinnedSection(
+      'desktop',
+      [...many, { owner: 'mona', name: 'repo20', addedAt: 99 }],
+      view,
+      noopSection,
+      doc,
+    );
+    expect(shown(section)).toEqual(['mona/repo2', 'mona/repo20']);
+  });
+
+  it('does not wire the filter to GitHub list behaviors', () => {
+    const doc = loadFixture('dashboard.html');
+    const section = ensurePinnedSection('desktop', many, view, noopSection, doc)!;
+    const input = section.querySelector<HTMLInputElement>('input.prg-filter')!;
+    expect(input.className).not.toMatch(/js-/);
+    type(input, 'repo3');
+    // GitHub's own list is unaffected by our filter.
+    expect(findDesktopTopRepos(doc)!.querySelectorAll('ul > li')).toHaveLength(4);
   });
 });
 

@@ -20,12 +20,12 @@ Before finishing a change, run `pnpm compile`, `pnpm test`, `pnpm e2e` and `pnpm
 ## Layout
 
 - `entrypoints/github.content/`: the only content script, on `https://github.com/*`, plus its CSS. One script for every route, because GitHub navigates between the dashboard and repositories without full reloads.
-- `entrypoints/popup/` and `src/popup.ts`: the popup (list, add, unpin).
+- `entrypoints/popup/` and `src/popup.ts`: the popup (list, add, unpin, how many pins the sidebar shows).
 - `src/content.ts`: wires storage to the page; routes with `github-url-detection`.
 - `src/dom/anchors.ts`: every GitHub selector, each with a primary selector (id, ARIA or `data-testid`) and a text fallback.
 - `src/features/`: the pinned section, the 📌 toggle on Top repositories rows, and the repository header Pin button.
 - `src/lib/observe.ts`: the single `MutationObserver` and soft-navigation hooks.
-- `src/storage/`: typed `chrome.storage.sync` access (`sync:pins`) and `owner/name` parsing.
+- `src/storage/`: typed `chrome.storage.sync` access (`sync:pins`, `sync:settings`) and `owner/name` parsing.
 - `tests/fixtures/`: recorded GitHub page structure, used by unit and e2e tests.
 
 ## Rules
@@ -34,7 +34,7 @@ Before finishing a change, run `pnpm compile`, `pnpm test`, `pnpm e2e` and `pnpm
 - Never select by hashed or generated class names (`prc-*`, `*__abc12`). Add new selectors only to `src/dom/anchors.ts`, with a fallback. When an anchor is missing, do nothing and log nothing.
 - DOM work must be idempotent: `sync()` runs on every page mutation. Mark created nodes with `data-prg` so the observer ignores them, and never insert into React-managed lists except at the end.
 - Build UI from cloned GitHub markup or DOM APIs with `textContent`. Never assign untrusted data (repository names, storage values) to `innerHTML`.
-- Pins are always shown sorted with `sortPins` (owner, then name, case-insensitive, natural numbers). There is no manual order.
+- Pins are always shown sorted with `sortPins` (owner, then name, case-insensitive, natural numbers). There is no manual order. The sidebar shows `visibleCount` pins (default 7) before _Show more_; the filter always searches every pin.
 - `chrome.storage.sync` allows 8 KB per key, so pins are capped at `MAX_PINS` (100) until storage is chunked.
 - Fixtures are committed to a public repository: use fictional repositories and strip ids, analytics attributes and HMACs. When GitHub's DOM changes, re-inspect the real page, update the fixture and the date comment in it, then fix `anchors.ts`.
 - User-facing text, docs and the Store listing are in English. "GitHub" always goes last in the product name.

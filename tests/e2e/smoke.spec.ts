@@ -43,6 +43,35 @@ test('adds the pinned section above Top repositories and pins from the list', as
   await expect(page.locator('aside ul.js-dashboard-repos-list > li')).toHaveCount(4);
 });
 
+test('filters pins and keeps the native New button', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await page.goto('https://github.com/');
+  const section = desktopSection(page);
+  await expect(section.getByRole('link', { name: 'New' })).toHaveAttribute('href', '/new');
+  // Nothing to filter yet.
+  await expect(section.locator('input.prg-filter')).toBeHidden();
+
+  for (const repo of ['octo-org/website', 'mona/dotfiles', 'acme/api-server', 'mona/repo10']) {
+    await pinFromTopRepos(page, repo);
+  }
+  await expect(pinnedNames(page)).toHaveText([
+    'acme/api-server',
+    'mona/dotfiles',
+    'mona/repo10',
+    'octo-org/website',
+  ]);
+
+  const filter = section.getByPlaceholder('Find a repository…');
+  await filter.fill('MONA');
+  await expect(pinnedNames(page)).toHaveText(['mona/dotfiles', 'mona/repo10']);
+  await filter.fill('zzz');
+  await expect(section).toContainText('No pinned repositories match.');
+  await filter.press('Escape');
+  await expect(pinnedNames(page)).toHaveCount(4);
+  // With the default limit of 7, four pins need no "Show more".
+  await expect(section.locator('button.prg-more')).toBeHidden();
+});
+
 test('survives GitHub re-rendering Top repositories', async ({ page }) => {
   await page.goto('https://github.com/dashboard');
   await expect(desktopSection(page)).toBeVisible();

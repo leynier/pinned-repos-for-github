@@ -5,6 +5,7 @@ import { fakeBrowser } from 'wxt/testing/fake-browser';
 import { mountPopup } from '../../src/popup';
 import { addPin, getPins } from '../../src/storage/pins';
 import { formatRepo } from '../../src/storage/repo-ref';
+import { getSettings } from '../../src/storage/settings';
 
 function popupDocument(): Document {
   const html = readFileSync(resolve(process.cwd(), 'entrypoints/popup/index.html'), 'utf8');
@@ -60,6 +61,18 @@ describe('popup', () => {
     doc.querySelector<HTMLButtonElement>('button[aria-label="Unpin mona/dotfiles"]')!.click();
     await vi.waitFor(async () => expect((await getPins()).map(formatRepo)).toEqual([]));
     await vi.waitFor(() => expect(doc.querySelector('#pin-list')!.textContent).toMatch(/No pins/));
+    unwatch();
+  });
+
+  it('edits how many pins the sidebar shows', async () => {
+    const doc = popupDocument();
+    const unwatch = await mountPopup(doc);
+    const input = doc.querySelector<HTMLInputElement>('#visible-count')!;
+    expect(input.value).toBe('7');
+    input.value = '250';
+    input.dispatchEvent(new Event('change'));
+    await vi.waitFor(async () => expect((await getSettings()).visibleCount).toBe(100));
+    await vi.waitFor(() => expect(input.value).toBe('100'));
     unwatch();
   });
 });

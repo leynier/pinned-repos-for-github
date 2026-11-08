@@ -14,6 +14,7 @@ import {
   type PinExtras,
 } from './storage/pins';
 import { parseRepoRef, repoKey, type RepoRef } from './storage/repo-ref';
+import { getSettings, watchSettings } from './storage/settings';
 
 /**
  * Wires storage to the page. Everything DOM-related is idempotent and keyed off the current
@@ -21,6 +22,7 @@ import { parseRepoRef, repoKey, type RepoRef } from './storage/repo-ref';
  */
 export async function startContent(doc: Document = document): Promise<() => void> {
   let pins: Pin[] = await getPins();
+  let view = { limit: (await getSettings()).visibleCount };
   let pinnedKeys = new Set(pins.map(repoKey));
   let reconciledUrl = '';
   const isPinnedKey = (key: string) => pinnedKeys.has(key);
@@ -52,8 +54,8 @@ export async function startContent(doc: Document = document): Promise<() => void
   const sync = () => {
     const url = new URL(doc.location.href);
     if (isDashboard(url)) {
-      ensurePinnedSection('desktop', pins, sectionActions, doc);
-      ensurePinnedSection('mobile', pins, sectionActions, doc);
+      ensurePinnedSection('desktop', pins, view, sectionActions, doc);
+      ensurePinnedSection('mobile', pins, view, sectionActions, doc);
       decorateTopRepoItems(isPinnedKey, toggleActions, doc);
     } else {
       for (const id of Object.values(SECTION_IDS)) doc.getElementById(id)?.remove();
@@ -86,8 +88,14 @@ export async function startContent(doc: Document = document): Promise<() => void
     handle.schedule();
   });
 
+  const unwatchSettings = watchSettings((settings) => {
+    view = { limit: settings.visibleCount };
+    handle.schedule();
+  });
+
   return () => {
     unwatch();
+    unwatchSettings();
     handle.disconnect();
   };
 }
