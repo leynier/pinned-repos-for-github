@@ -26,6 +26,15 @@ import { parseRepoRef, repoKey, type RepoRef } from './storage/repo-ref';
 import { getSettings, setCollapsed, watchSettings } from './storage/settings';
 
 /**
+ * Requests made as the page, with the user's GitHub session. In Firefox, a content script's own
+ * `fetch` uses the extension's principal, so the page's `content.fetch` is used instead.
+ */
+const pageFetch = (input: string, init?: RequestInit): Promise<Response> => {
+  const content = (globalThis as { content?: { fetch?: typeof fetch } }).content;
+  return typeof content?.fetch === 'function' ? content.fetch(input, init) : fetch(input, init);
+};
+
+/**
  * Wires storage to the page. Everything DOM-related is idempotent and keyed off the current
  * pins, so `sync` can run as often as GitHub mutates the page.
  */
@@ -84,7 +93,7 @@ export async function startContent(doc: Document = document): Promise<() => void
       if (stopped) return;
       void runHealthCheck({
         pins,
-        fetchImpl: (input, init) => fetch(input, init),
+        fetchImpl: pageFetch,
         shouldStop: () => stopped,
       }).catch(report);
     }, 5_000);
