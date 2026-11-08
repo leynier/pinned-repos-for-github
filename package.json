@@ -8,14 +8,20 @@
   "scripts": {
     "dev": "wxt",
     "build": "wxt build",
+    "build:firefox": "wxt build -b firefox",
+    "build:edge": "wxt build -b edge",
+    "lint:firefox": "wxt build -b firefox && web-ext lint -s .output/firefox-mv2",
     "zip": "wxt zip",
+    "zip:firefox": "wxt zip -b firefox",
+    "zip:edge": "wxt zip -b edge",
     "compile": "tsc --noEmit",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "test": "vitest run",
     "e2e": "wxt build && playwright test",
     "postinstall": "wxt prepare",
-    "icons": "node scripts/generate-icons.mjs"
+    "icons": "node scripts/generate-icons.mjs",
+    "dev:firefox": "wxt -b firefox"
   },
   "dependencies": {
     "github-url-detection": "^11.2.4"
@@ -26,6 +32,7 @@
     "prettier": "^3.9.10",
     "typescript": "^6.0.3",
     "vitest": "^5.1.0",
+    "web-ext": "^10.8.0",
     "wxt": "^0.21.5"
   }
 }
