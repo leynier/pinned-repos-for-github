@@ -24,7 +24,6 @@ Pinned Repos for GitHub adds a **Pinned repositories** section right above *Top 
 ┌──────────────────────────────┐
 │ 📌 Pinned repositories       │  ← your picks, your order
 │   leynier/alera              │
-│   educup/educup-server       │
 │   …                          │
 ├──────────────────────────────┤
 │ Top repositories             │  ← GitHub's list, untouched
