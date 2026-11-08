@@ -1,6 +1,4 @@
 import { readFileSync, writeFileSync } from 'node:fs';
-import { tmpdir } from 'node:os';
-import { join } from 'node:path';
 import { expect, extensionId, test } from './fixtures';
 
 test('imports and exports pins from the options page', async ({ context, page }) => {
@@ -8,7 +6,7 @@ test('imports and exports pins from the options page', async ({ context, page })
   await options.goto(`chrome-extension://${extensionId}/options.html`);
   await expect(options.getByRole('heading', { name: 'Pinned Repos for GitHub' })).toBeVisible();
 
-  const file = join(tmpdir(), `prg-import-${process.pid}.json`);
+  const file = test.info().outputPath('import.json');
   writeFileSync(file, JSON.stringify(['zeta/app', 'https://github.com/acme/api', 'not a repo']));
   await options.getByLabel('JSON file').setInputFiles(file);
   await options.getByRole('button', { name: 'Import' }).click();

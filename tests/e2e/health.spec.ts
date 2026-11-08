@@ -1,6 +1,4 @@
 import { writeFileSync } from 'node:fs';
-import { tmpdir } from 'node:os';
-import { join } from 'node:path';
 import { expect, extensionId, test } from './fixtures';
 
 // Renames are covered by unit tests: Playwright does not route the request that follows a
@@ -12,7 +10,7 @@ test('flags pinned repositories that no longer exist, in the background', async 
   test.setTimeout(30_000);
   const options = await context.newPage();
   await options.goto(`chrome-extension://${extensionId}/options.html`);
-  const file = join(tmpdir(), `prg-health-${process.pid}.json`);
+  const file = test.info().outputPath('pins.json');
   writeFileSync(file, JSON.stringify(['mona/dotfiles', 'acme/deleted-repo']));
   await options.getByLabel('JSON file').setInputFiles(file);
   await options.getByRole('button', { name: 'Import' }).click();
