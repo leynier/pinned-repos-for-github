@@ -1,0 +1,169 @@
+<!doctype html>
+<!-- Fixture: GitHub home dashboard ("Preview"), structure captured 2026-11-08. Repositories are fictional. -->
+<html lang="en" data-color-mode="auto" data-light-theme="light" data-dark-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <title>GitHub Dashboard</title>
+  <style>
+    /* Minimal stand-ins for the Primer breakpoint utilities the layout depends on. */
+    .d-flex { display: flex; } .list-style-none { list-style: none; padding: 0; }
+    .avatar { border-radius: 6px; } .circle { border-radius: 50%; }
+    @media (max-width: 767.98px) { .hide-sm { display: none !important; } }
+    /* Observed: the sidebar (hide-sm hide-md) is visible at 900px, so only the < 768px rule matters. */
+    @media (max-width: 767.98px) { .hide-md { display: none !important; } }
+    @media (min-width: 768px) { .d-md-none { display: none !important; } .d-md-flex { display: flex !important; } }
+  </style>
+</head>
+<body class="logged-in env-production page-responsive full-width" data-turbo-body="">
+<div class="application-main">
+<div class="color-bg-default">
+<div class="d-md-flex feed-background">
+  <aside class="feed-left-sidebar col-md-4 col-lg-3 color-border-muted border-bottom hide-md hide-sm border-right color-bg-default" data-turbo="false" aria-label="Dashboard menu">
+    <div class="dashboard-sidebar">
+      <div class="top-0 overflow-y-auto d-flex flex-column js-left-column-scroll-container">
+        <div class="tmp-px-3 tmp-pt-3"><div class="px-1 tmp-py-3 mb-2">mona</div></div>
+        <loading-context class="loading-context position-relative height-full" data-view-component="true">
+          <div data-target="loading-context.details">
+            <div class="tmp-px-4">
+              <div class="Details js-repos-container mt-0 mt-md-2 p-2 p-md-0" data-repository-hovercards-enabled="" role="navigation" aria-labelledby="dashboard-top-repositories-heading">
+  <div class="js-repos-container">
+    <div class="hide-sm hide-md mb-1 d-flex flex-justify-between flex-items-center">
+        <h2 class="f5" id="dashboard-top-repositories-heading"> Top repositories</h2>
+        <a href="/new" data-view-component="true" class="Button--primary Button--small Button">  <span class="Button-content"><span class="Button-label">New</span></span></a>
+    </div>
+      <div class="mt-2 tmp-mb-3" role="search" aria-label="Top repositories">
+        <input type="text" class="form-control input-contrast input-block tmp-mb-3 js-filterable-field js-your-repositories-search" id="dashboard-repos-filter-left" placeholder="Find a repository…" aria-label="Find a repository…" data-url="/" data-query-name="q" value="" autocomplete="off">
+      </div>
+<ul class="list-style-none js-dashboard-repos-list" data-filterable-for="dashboard-repos-filter-left" data-filterable-type="substring">
+    <li class="public source ">
+      <div class="width-full d-flex mt-2">
+        <a data-hydro-click="{&quot;event_type&quot;:&quot;dashboard.click&quot;,&quot;payload&quot;:{&quot;target&quot;:&quot;REPOSITORY&quot;,&quot;record_id&quot;:1}}" data-hydro-click-hmac="0000" data-hovercard-type="repository" data-hovercard-url="/octo-org/website/hovercard" class="mr-2 d-flex flex-items-center" href="/octo-org/website" aria-keyshortcuts="Alt+ArrowUp">
+          <img src="data:image/gif;base64,R0lGODlhAQABAAAAACw=" class=" avatar avatar-small" width="16" height="16" alt="website" aria-label="Repository">
+</a>        <div class="wb-break-word">
+          <a data-hydro-click="{&quot;event_type&quot;:&quot;dashboard.click&quot;,&quot;payload&quot;:{&quot;target&quot;:&quot;REPOSITORY&quot;,&quot;record_id&quot;:1}}" data-hydro-click-hmac="0000" data-hovercard-type="repository" data-hovercard-url="/octo-org/website/hovercard" class="color-fg-default lh-0 mb-2 markdown-title" href="/octo-org/website" aria-keyshortcuts="Alt+ArrowUp">
+            octo-org<span class="color-fg-muted">/</span>website
+</a>        </div>
+      </div>
+    </li>
+    <li class="public source ">
+      <div class="width-full d-flex mt-2">
+        <a data-hydro-click="{&quot;event_type&quot;:&quot;dashboard.click&quot;,&quot;payload&quot;:{&quot;target&quot;:&quot;REPOSITORY&quot;,&quot;record_id&quot;:1}}" data-hydro-click-hmac="0000" data-hovercard-type="repository" data-hovercard-url="/mona/dotfiles/hovercard" class="mr-2 d-flex flex-items-center" href="/mona/dotfiles" aria-keyshortcuts="Alt+ArrowUp">
+          <img src="data:image/gif;base64,R0lGODlhAQABAAAAACw=" class=" avatar avatar-user avatar-small circle" width="16" height="16" alt="dotfiles" aria-label="Repository">
+</a>        <div class="wb-break-word">
+          <a data-hydro-click="{&quot;event_type&quot;:&quot;dashboard.click&quot;,&quot;payload&quot;:{&quot;target&quot;:&quot;REPOSITORY&quot;,&quot;record_id&quot;:1}}" data-hydro-click-hmac="0000" data-hovercard-type="repository" data-hovercard-url="/mona/dotfiles/hovercard" class="color-fg-default lh-0 mb-2 markdown-title" href="/mona/dotfiles" aria-keyshortcuts="Alt+ArrowUp">
+            mona<span class="color-fg-muted">/</span>dotfiles
+</a>        </div>
+      </div>
+    </li>
+    <li class="private source ">
+      <div class="width-full d-flex mt-2">
+        <a data-hydro-click="{&quot;event_type&quot;:&quot;dashboard.click&quot;,&quot;payload&quot;:{&quot;target&quot;:&quot;REPOSITORY&quot;,&quot;record_id&quot;:1}}" data-hydro-click-hmac="0000" data-hovercard-type="repository" data-hovercard-url="/acme/api-server/hovercard" class="mr-2 d-flex flex-items-center" href="/acme/api-server" aria-keyshortcuts="Alt+ArrowUp">
+          <img src="data:image/gif;base64,R0lGODlhAQABAAAAACw=" class=" avatar avatar-small" width="16" height="16" alt="api-server" aria-label="Repository">
+</a>        <div class="wb-break-word">
+          <a data-hydro-click="{&quot;event_type&quot;:&quot;dashboard.click&quot;,&quot;payload&quot;:{&quot;target&quot;:&quot;REPOSITORY&quot;,&quot;record_id&quot;:1}}" data-hydro-click-hmac="0000" data-hovercard-type="repository" data-hovercard-url="/acme/api-server/hovercard" class="color-fg-default lh-0 mb-2 markdown-title" href="/acme/api-server" aria-keyshortcuts="Alt+ArrowUp">
+            acme<span class="color-fg-muted">/</span>api-server
+</a>        </div>
+      </div>
+    </li>
+    <li class="public source ">
+      <div class="width-full d-flex mt-2">
+        <a data-hydro-click="{&quot;event_type&quot;:&quot;dashboard.click&quot;,&quot;payload&quot;:{&quot;target&quot;:&quot;REPOSITORY&quot;,&quot;record_id&quot;:1}}" data-hydro-click-hmac="0000" data-hovercard-type="repository" data-hovercard-url="/mona/repo10/hovercard" class="mr-2 d-flex flex-items-center" href="/mona/repo10" aria-keyshortcuts="Alt+ArrowUp">
+          <img src="data:image/gif;base64,R0lGODlhAQABAAAAACw=" class=" avatar avatar-user avatar-small circle" width="16" height="16" alt="repo10" aria-label="Repository">
+</a>        <div class="wb-break-word">
+          <a data-hydro-click="{&quot;event_type&quot;:&quot;dashboard.click&quot;,&quot;payload&quot;:{&quot;target&quot;:&quot;REPOSITORY&quot;,&quot;record_id&quot;:1}}" data-hydro-click-hmac="0000" data-hovercard-type="repository" data-hovercard-url="/mona/repo10/hovercard" class="color-fg-default lh-0 mb-2 markdown-title" href="/mona/repo10" aria-keyshortcuts="Alt+ArrowUp">
+            mona<span class="color-fg-muted">/</span>repo10
+</a>        </div>
+      </div>
+    </li>
+</ul>
+<form class="ajax-pagination-form js-ajax-pagination js-more-repos-form" data-turbo="false" action="/dashboard/ajax_my_repositories?location=left" accept-charset="UTF-8" method="get">
+    <input name="repos_cursor" type="hidden" value="2">
+    <button name="button" type="submit" class="width-full text-left btn-link f6 Link--muted text-left tmp-mt-3 border-md-0 border-top tmp-py-md-0 tmp-py-3 tmp-px-md-0 px-2" data-disable-with="Loading more...">Show more</button>
+</form>
+  </div>
+</div>
+            </div>
+          </div>
+        </loading-context>
+      </div>
+    </div>
+  </aside>
+  <div class="flex-auto col-md-8 col-lg-8 tmp-px-3">
+    <main class="flex-auto">
+      <div id="dashboard" class="dashboard">
+        <div class="news">
+          <div class="copilotPreview__container">Home</div>
+          <div class="d-block d-md-none">
+    <nav class="mt-2 tmp-mb-4 Details js-repos-container" aria-labelledby="dashboard-repositories-nav-heading">
+      <h2 id="dashboard-repositories-nav-heading" class="f5 tmp-mb-4 d-flex flex-justify-between flex-items-center">Top Repositories</h2>
+      <div class="Box px-2 py-1 color-bg-default">
+          <div class="Details js-repos-container mt-0 mt-md-2 p-2 p-md-0" data-repository-hovercards-enabled="">
+    <div class="js-repos-container">
+    <div class="hide-sm hide-md mb-1 d-flex flex-justify-between flex-items-center">
+        <h2 class="f5"> Top repositories</h2>
+        <a href="/new" data-view-component="true" class="Button--primary Button--small Button">  <span class="Button-content"><span class="Button-label">New</span></span></a>
+    </div>
+      <div class="mt-2 tmp-mb-3" role="search" aria-label="Top repositories">
+        <input type="text" class="form-control input-contrast input-block tmp-mb-3 js-filterable-field js-your-repositories-search" id="dashboard-repos-filter-center" placeholder="Find a repository…" aria-label="Find a repository…" data-url="/" data-query-name="q" value="" autocomplete="off">
+      </div>
+<ul class="list-style-none js-dashboard-repos-list" data-filterable-for="dashboard-repos-filter-left" data-filterable-type="substring">
+    <li class="public source ">
+      <div class="width-full d-flex mt-2">
+        <a data-hydro-click="{&quot;event_type&quot;:&quot;dashboard.click&quot;,&quot;payload&quot;:{&quot;target&quot;:&quot;REPOSITORY&quot;,&quot;record_id&quot;:1}}" data-hydro-click-hmac="0000" data-hovercard-type="repository" data-hovercard-url="/octo-org/website/hovercard" class="mr-2 d-flex flex-items-center" href="/octo-org/website" aria-keyshortcuts="Alt+ArrowUp">
+          <img src="data:image/gif;base64,R0lGODlhAQABAAAAACw=" class=" avatar avatar-small" width="16" height="16" alt="website" aria-label="Repository">
+</a>        <div class="wb-break-word">
+          <a data-hydro-click="{&quot;event_type&quot;:&quot;dashboard.click&quot;,&quot;payload&quot;:{&quot;target&quot;:&quot;REPOSITORY&quot;,&quot;record_id&quot;:1}}" data-hydro-click-hmac="0000" data-hovercard-type="repository" data-hovercard-url="/octo-org/website/hovercard" class="color-fg-default lh-0 mb-2 markdown-title" href="/octo-org/website" aria-keyshortcuts="Alt+ArrowUp">
+            octo-org<span class="color-fg-muted">/</span>website
+</a>        </div>
+      </div>
+    </li>
+    <li class="public source ">
+      <div class="width-full d-flex mt-2">
+        <a data-hydro-click="{&quot;event_type&quot;:&quot;dashboard.click&quot;,&quot;payload&quot;:{&quot;target&quot;:&quot;REPOSITORY&quot;,&quot;record_id&quot;:1}}" data-hydro-click-hmac="0000" data-hovercard-type="repository" data-hovercard-url="/mona/dotfiles/hovercard" class="mr-2 d-flex flex-items-center" href="/mona/dotfiles" aria-keyshortcuts="Alt+ArrowUp">
+          <img src="data:image/gif;base64,R0lGODlhAQABAAAAACw=" class=" avatar avatar-user avatar-small circle" width="16" height="16" alt="dotfiles" aria-label="Repository">
+</a>        <div class="wb-break-word">
+          <a data-hydro-click="{&quot;event_type&quot;:&quot;dashboard.click&quot;,&quot;payload&quot;:{&quot;target&quot;:&quot;REPOSITORY&quot;,&quot;record_id&quot;:1}}" data-hydro-click-hmac="0000" data-hovercard-type="repository" data-hovercard-url="/mona/dotfiles/hovercard" class="color-fg-default lh-0 mb-2 markdown-title" href="/mona/dotfiles" aria-keyshortcuts="Alt+ArrowUp">
+            mona<span class="color-fg-muted">/</span>dotfiles
+</a>        </div>
+      </div>
+    </li>
+    <li class="private source ">
+      <div class="width-full d-flex mt-2">
+        <a data-hydro-click="{&quot;event_type&quot;:&quot;dashboard.click&quot;,&quot;payload&quot;:{&quot;target&quot;:&quot;REPOSITORY&quot;,&quot;record_id&quot;:1}}" data-hydro-click-hmac="0000" data-hovercard-type="repository" data-hovercard-url="/acme/api-server/hovercard" class="mr-2 d-flex flex-items-center" href="/acme/api-server" aria-keyshortcuts="Alt+ArrowUp">
+          <img src="data:image/gif;base64,R0lGODlhAQABAAAAACw=" class=" avatar avatar-small" width="16" height="16" alt="api-server" aria-label="Repository">
+</a>        <div class="wb-break-word">
+          <a data-hydro-click="{&quot;event_type&quot;:&quot;dashboard.click&quot;,&quot;payload&quot;:{&quot;target&quot;:&quot;REPOSITORY&quot;,&quot;record_id&quot;:1}}" data-hydro-click-hmac="0000" data-hovercard-type="repository" data-hovercard-url="/acme/api-server/hovercard" class="color-fg-default lh-0 mb-2 markdown-title" href="/acme/api-server" aria-keyshortcuts="Alt+ArrowUp">
+            acme<span class="color-fg-muted">/</span>api-server
+</a>        </div>
+      </div>
+    </li>
+    <li class="public source ">
+      <div class="width-full d-flex mt-2">
+        <a data-hydro-click="{&quot;event_type&quot;:&quot;dashboard.click&quot;,&quot;payload&quot;:{&quot;target&quot;:&quot;REPOSITORY&quot;,&quot;record_id&quot;:1}}" data-hydro-click-hmac="0000" data-hovercard-type="repository" data-hovercard-url="/mona/repo10/hovercard" class="mr-2 d-flex flex-items-center" href="/mona/repo10" aria-keyshortcuts="Alt+ArrowUp">
+          <img src="data:image/gif;base64,R0lGODlhAQABAAAAACw=" class=" avatar avatar-user avatar-small circle" width="16" height="16" alt="repo10" aria-label="Repository">
+</a>        <div class="wb-break-word">
+          <a data-hydro-click="{&quot;event_type&quot;:&quot;dashboard.click&quot;,&quot;payload&quot;:{&quot;target&quot;:&quot;REPOSITORY&quot;,&quot;record_id&quot;:1}}" data-hydro-click-hmac="0000" data-hovercard-type="repository" data-hovercard-url="/mona/repo10/hovercard" class="color-fg-default lh-0 mb-2 markdown-title" href="/mona/repo10" aria-keyshortcuts="Alt+ArrowUp">
+            mona<span class="color-fg-muted">/</span>repo10
+</a>        </div>
+      </div>
+    </li>
+</ul>
+<form class="ajax-pagination-form js-ajax-pagination js-more-repos-form" data-turbo="false" action="/dashboard/ajax_my_repositories?location=left" accept-charset="UTF-8" method="get">
+    <input name="repos_cursor" type="hidden" value="2">
+    <button name="button" type="submit" class="width-full text-left btn-link f6 Link--muted text-left tmp-mt-3 border-md-0 border-top tmp-py-md-0 tmp-py-3 tmp-px-md-0 px-2" data-disable-with="Loading more...">Show more</button>
+</form>
+  </div>
+          </div>
+      </div>
+    </nav>
+          </div>
+          <div><h2>Feed</h2></div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,67 @@
+/* Pinned Repos for GitHub. Colors come from Primer variables so light, dark and high-contrast
+   themes work without overrides; the legacy `--color-*` names are fallbacks. */
+
+.prg-section {
+  margin-bottom: var(--base-size-16, 16px);
+}
+
+.prg-item > div,
+.js-dashboard-repos-list > li > div {
+  position: relative;
+}
+
+.prg-row-button {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  margin: -2px 0 0 auto;
+  padding: 0;
+  border: 0;
+  border-radius: var(--borderRadius-small, 3px);
+  background: transparent;
+  color: var(--fgColor-muted, var(--color-fg-muted));
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 80ms ease-out;
+}
+
+.prg-row-button .octicon {
+  width: 14px;
+  height: 14px;
+}
+
+li:hover > div > .prg-row-button,
+li:focus-within > div > .prg-row-button,
+.prg-row-button:focus-visible {
+  opacity: 1;
+}
+
+.prg-row-button:hover {
+  background: var(
+    --control-transparent-bgColor-hover,
+    var(--color-action-list-item-default-hover-bg)
+  );
+  color: var(--fgColor-default, var(--color-fg-default));
+}
+
+.prg-row-button:focus-visible {
+  outline: 2px solid var(--focus-outlineColor, var(--color-accent-fg));
+  outline-offset: -2px;
+}
+
+.prg-pin-toggle[aria-pressed='true'] {
+  color: var(--fgColor-accent, var(--color-accent-fg));
+}
+
+.prg-empty {
+  list-style: none;
+}
+
+@media (hover: none) {
+  .prg-row-button {
+    opacity: 1;
+  }
+}
