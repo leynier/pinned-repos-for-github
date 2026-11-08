@@ -23,7 +23,7 @@ import {
   LIMIT_MESSAGE,
 } from './storage/pins';
 import { parseRepoRef, repoKey, type RepoRef } from './storage/repo-ref';
-import { getSettings, watchSettings } from './storage/settings';
+import { getSettings, setCollapsed, watchSettings } from './storage/settings';
 
 /**
  * Wires storage to the page. Everything DOM-related is idempotent and keyed off the current
@@ -31,9 +31,10 @@ import { getSettings, watchSettings } from './storage/settings';
  */
 export async function startContent(doc: Document = document): Promise<() => void> {
   let pins: Pin[] = await getPins();
-  let limit = (await getSettings()).visibleCount;
+  let settings = await getSettings();
   let missing = await getMissingKeys();
-  let view = { limit, missing };
+  const makeView = () => ({ limit: settings.visibleCount, collapsed: settings.collapsed, missing });
+  let view = makeView();
   let healthStarted = false;
   let ownerTypesLearned = false;
   let stopped = false;
@@ -48,6 +49,7 @@ export async function startContent(doc: Document = document): Promise<() => void
 
   const sectionActions: SectionActions = {
     unpin: (pin) => void removePin(pin).catch(report),
+    setCollapsed: (collapsed) => void setCollapsed(collapsed).catch(report),
   };
   const toggleActions: ToggleActions & RepoButtonActions = {
     toggle: (ref: RepoRef, extras: PinExtras = {}) =>
@@ -127,14 +129,14 @@ export async function startContent(doc: Document = document): Promise<() => void
     handle.schedule();
   });
 
-  const unwatchSettings = watchSettings((settings) => {
-    limit = settings.visibleCount;
-    view = { limit, missing };
+  const unwatchSettings = watchSettings((next) => {
+    settings = next;
+    view = makeView();
     handle.schedule();
   });
   const unwatchMissing = watchMissingKeys((keys) => {
     missing = keys;
-    view = { limit, missing };
+    view = makeView();
     handle.schedule();
   });
 

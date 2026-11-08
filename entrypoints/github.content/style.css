@@ -57,6 +57,37 @@ li:focus-within > div > .prg-row-button,
   color: var(--fgColor-accent, var(--color-accent-fg));
 }
 
+.prg-collapse {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin: 0 0 0 -4px;
+  padding: 0 4px 0 0;
+  border: 0;
+  border-radius: var(--borderRadius-small, 3px);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.prg-collapse .octicon {
+  color: var(--fgColor-muted, var(--color-fg-muted));
+}
+
+.prg-collapse:hover .octicon {
+  color: var(--fgColor-default, var(--color-fg-default));
+}
+
+.prg-collapse:focus-visible {
+  outline: 2px solid var(--focus-outlineColor, var(--color-accent-fg));
+  outline-offset: 2px;
+}
+
+.prg-collapsed .prg-more-wrapper {
+  display: none;
+}
+
 .prg-empty {
   list-style: none;
 }

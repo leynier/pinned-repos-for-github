@@ -19,13 +19,17 @@ beforeEach(() => fakeBrowser.reset());
 describe('export', () => {
   it('builds a versioned file that parses back', () => {
     const now = new Date('2026-11-08T12:00:00Z');
-    const file = buildExport([pin('mona', 'dotfiles', { repoId: 4 })], { visibleCount: 5 }, now);
+    const file = buildExport(
+      [pin('mona', 'dotfiles', { repoId: 4 })],
+      { visibleCount: 5, collapsed: false },
+      now,
+    );
     expect(file).toMatchObject({ format: 'pinned-repos-for-github', version: 1 });
     expect(exportFileName(now)).toBe('pinned-repos-for-github-2026-11-08.json');
     const parsed = parseImport(JSON.stringify(file));
     expect(parsed).toEqual({
       pins: [pin('mona', 'dotfiles', { repoId: 4 })],
-      settings: { visibleCount: 5 },
+      settings: { visibleCount: 5, collapsed: false },
       skipped: 0,
     });
   });
@@ -99,7 +103,10 @@ describe('importText', () => {
   it('replaces pins and settings', async () => {
     await addPin({ owner: 'mona', name: 'dotfiles' });
     await setVisibleCount(3);
-    const file = buildExport([pin('zeta', 'app'), pin('acme', 'api')], { visibleCount: 12 });
+    const file = buildExport([pin('zeta', 'app'), pin('acme', 'api')], {
+      visibleCount: 12,
+      collapsed: false,
+    });
     const result = await importText(JSON.stringify(file), 'replace');
     expect(result.message).toBe('Replaced your pins with 2 repositories.');
     expect(names(await getPins())).toEqual(['acme/api', 'zeta/app']);

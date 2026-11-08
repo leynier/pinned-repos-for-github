@@ -5,6 +5,8 @@ import {
   findDesktopTopRepos,
   findMobileTopRepos,
   findRepoHeaderActions,
+  isSignedIn,
+  readOwnerTypes,
   readRepoMeta,
   repoRefFromItem,
 } from '../../src/dom/anchors';
@@ -46,6 +48,22 @@ describe('anchors', () => {
     const mobile = findMobileTopRepos(doc)!;
     mobile.removeAttribute('aria-labelledby');
     expect(findMobileTopRepos(doc)).toBe(mobile);
+  });
+
+  it('reads owner types from Top repositories avatars', () => {
+    const doc = loadFixture('dashboard.html');
+    expect(Object.fromEntries(readOwnerTypes(findAllTopRepoItems(doc)))).toEqual({
+      'octo-org': false,
+      mona: true,
+      acme: false,
+    });
+  });
+
+  it('detects a signed-in session', () => {
+    const doc = loadFixture('dashboard.html');
+    expect(isSignedIn(doc)).toBe(true);
+    doc.body.classList.remove('logged-in');
+    expect(isSignedIn(doc)).toBe(false);
   });
 
   it('reads repository metadata', () => {
@@ -110,6 +128,7 @@ describe('pinned section', () => {
       SECTION_IDS.desktop,
       `${SECTION_IDS.desktop}-heading`,
       `${SECTION_IDS.desktop}-filter`,
+      `${SECTION_IDS.desktop}-list`,
     ]);
   });
 
@@ -373,5 +392,29 @@ describe('missing pins', () => {
     expect(ok!.classList.contains('prg-missing')).toBe(false);
     expect(missing!.classList.contains('prg-missing')).toBe(true);
     expect(missing!.querySelector('a')!.title).toMatch(/Not found or no access/);
+  });
+});
+
+describe('collapsing', () => {
+  it('collapses to the heading and asks to persist the change', () => {
+    const doc = loadFixture('dashboard.html');
+    const setCollapsed = vi.fn();
+    const actions = { unpin: vi.fn(), setCollapsed };
+    const section = ensurePinnedSection('desktop', pins, view, actions, doc)!;
+    const toggle = section.querySelector<HTMLButtonElement>('h2 button.prg-collapse')!;
+    expect(toggle.textContent).toBe('Pinned repositories');
+    expect(toggle.getAttribute('aria-expanded')).toBe('true');
+    toggle.click();
+    expect(setCollapsed).toHaveBeenCalledWith(true);
+
+    ensurePinnedSection('desktop', pins, { ...view, collapsed: true }, actions, doc);
+    expect(toggle.getAttribute('aria-expanded')).toBe('false');
+    expect(section.querySelector<HTMLElement>('ul.prg-list')!.hidden).toBe(true);
+    expect(section.querySelector<HTMLElement>('.prg-search')!.hidden).toBe(true);
+    // "New" stays reachable.
+    expect(section.querySelector('a[href="/new"]')).not.toBeNull();
+
+    toggle.click();
+    expect(setCollapsed).toHaveBeenLastCalledWith(false);
   });
 });

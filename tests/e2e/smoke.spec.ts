@@ -127,3 +127,19 @@ test('syncs pins live across tabs', async ({ context, page }) => {
   await pinFromTopRepos(page, 'octo-org/website');
   await expect(pinnedNames(other)).toHaveText(['octo-org/website']);
 });
+
+test('collapses the section and remembers it', async ({ page }) => {
+  await page.goto('https://github.com/');
+  await pinFromTopRepos(page, 'mona/dotfiles');
+  const toggle = desktopSection(page).getByRole('button', { name: 'Pinned repositories' });
+  await expect(toggle).toHaveAttribute('aria-expanded', 'true');
+  await toggle.click();
+  await expect(toggle).toHaveAttribute('aria-expanded', 'false');
+  await expect(pinnedNames(page)).toBeHidden();
+
+  await page.reload();
+  await expect(
+    desktopSection(page).getByRole('button', { name: 'Pinned repositories' }),
+  ).toHaveAttribute('aria-expanded', 'false');
+  await expect(pinnedNames(page)).toBeHidden();
+});

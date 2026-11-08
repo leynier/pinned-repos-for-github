@@ -4,9 +4,11 @@ import { MAX_PINS } from './pins';
 export interface Settings {
   /** Pins shown in the sidebar before "Show more". GitHub shows 7 Top repositories. */
   visibleCount: number;
+  /** Whether the sidebar section is collapsed to its heading. */
+  collapsed: boolean;
 }
 
-export const DEFAULT_SETTINGS: Settings = { visibleCount: 7 };
+export const DEFAULT_SETTINGS: Settings = { visibleCount: 7, collapsed: false };
 
 export const settingsItem = storage.defineItem<Settings>('sync:settings', {
   fallback: DEFAULT_SETTINGS,
@@ -21,7 +23,10 @@ export function clampVisibleCount(value: unknown): number {
 
 export function sanitizeSettings(value: unknown): Settings {
   const raw = value && typeof value === 'object' ? (value as Record<string, unknown>) : {};
-  return { visibleCount: clampVisibleCount(raw.visibleCount ?? DEFAULT_SETTINGS.visibleCount) };
+  return {
+    visibleCount: clampVisibleCount(raw.visibleCount ?? DEFAULT_SETTINGS.visibleCount),
+    collapsed: raw.collapsed === true,
+  };
 }
 
 export async function getSettings(): Promise<Settings> {
@@ -32,6 +37,10 @@ export async function setVisibleCount(value: unknown): Promise<number> {
   const visibleCount = clampVisibleCount(value);
   await settingsItem.setValue({ ...(await getSettings()), visibleCount });
   return visibleCount;
+}
+
+export async function setCollapsed(collapsed: boolean): Promise<void> {
+  await settingsItem.setValue({ ...(await getSettings()), collapsed });
 }
 
 export function watchSettings(callback: (settings: Settings) => void): () => void {
