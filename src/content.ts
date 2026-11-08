@@ -12,6 +12,7 @@ import {
   watchPins,
   type Pin,
   type PinExtras,
+  LIMIT_MESSAGE,
 } from './storage/pins';
 import { parseRepoRef, repoKey, type RepoRef } from './storage/repo-ref';
 import { getSettings, watchSettings } from './storage/settings';
@@ -40,7 +41,7 @@ export async function startContent(doc: Document = document): Promise<() => void
       void togglePin(ref, extras)
         .then(({ result }) => {
           if (result === 'limit') {
-            alert('Pinned Repos for GitHub: you can pin up to 100 repositories. Unpin one first.');
+            alert(`Pinned Repos for GitHub: ${LIMIT_MESSAGE}`);
           }
         })
         .catch(report),

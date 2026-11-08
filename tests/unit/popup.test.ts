@@ -34,7 +34,7 @@ describe('popup', () => {
 
     await submit(doc, 'https://github.com/acme/api-server/tree/main');
     await vi.waitFor(() => expect(rows(doc)).toEqual(['acme/api-server', 'zeta/app']));
-    expect(doc.querySelector('#count')!.textContent).toBe('2 / 100');
+    expect(doc.querySelector('#count')!.textContent).toBe('2 / 500');
     expect(doc.querySelector('#message')!.textContent).toBe('Pinned acme/api-server.');
     unwatch();
   });
@@ -69,10 +69,10 @@ describe('popup', () => {
     const unwatch = await mountPopup(doc);
     const input = doc.querySelector<HTMLInputElement>('#visible-count')!;
     expect(input.value).toBe('7');
-    input.value = '250';
+    input.value = '900';
     input.dispatchEvent(new Event('change'));
-    await vi.waitFor(async () => expect((await getSettings()).visibleCount).toBe(100));
-    await vi.waitFor(() => expect(input.value).toBe('100'));
+    await vi.waitFor(async () => expect((await getSettings()).visibleCount).toBe(500));
+    await vi.waitFor(() => expect(input.value).toBe('500'));
     unwatch();
   });
 });
