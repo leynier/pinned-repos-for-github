@@ -16,6 +16,7 @@ export const NO_MATCH_TEXT = 'No pinned repositories match.';
 
 export interface SectionActions {
   unpin(pin: Pin): void;
+  setCollapsed?(collapsed: boolean): void;
 }
 
 const HIDE_CLASSES = ['hide-sm', 'hide-md', 'hide-lg', 'hide-xl'];
@@ -137,6 +138,8 @@ export interface SectionView {
   limit: number;
   /** Lowercase `owner/name` keys that the last check could not find. */
   missing?: ReadonlySet<string>;
+  /** Show only the heading. */
+  collapsed?: boolean;
 }
 
 interface SectionState {
@@ -245,7 +248,18 @@ export function buildSection(kind: SectionKind, topRepos: HTMLElement): HTMLElem
 
   if (heading) {
     heading.id = headingId;
-    heading.textContent = headingText(heading.textContent ?? '');
+    const toggle = doc.createElement('button');
+    toggle.type = 'button';
+    toggle.className = 'prg-collapse';
+    toggle.setAttribute('aria-controls', `${SECTION_IDS[kind]}-list`);
+    const label = doc.createElement('span');
+    label.textContent = headingText(heading.textContent ?? '');
+    toggle.append(createIcon('chevron-down', doc), label);
+    toggle.addEventListener('click', () => {
+      const state = sectionState.get(section);
+      state?.actions.setCollapsed?.(!state.view.collapsed);
+    });
+    heading.replaceChildren(toggle);
     // GitHub hides its desktop header between 768px and 1011px; ours stays visible.
     heading.parentElement?.classList.remove(...HIDE_CLASSES);
   }
@@ -257,6 +271,7 @@ export function buildSection(kind: SectionKind, topRepos: HTMLElement): HTMLElem
     section.append(list);
   }
   list.classList.add('prg-list');
+  list.id = `${SECTION_IDS[kind]}-list`;
   list.replaceChildren();
 
   setUpFilter(section, kind, list);
@@ -273,7 +288,7 @@ function renderSignature(section: HTMLElement, state: SectionState): string {
     )
     .join(',');
   const query = filterInput(section)?.value ?? '';
-  return `${pins}|${state.view.limit}|${section.dataset.prgExpanded === 'true'}|${query}`;
+  return `${pins}|${state.view.limit}|${state.view.collapsed === true}|${section.dataset.prgExpanded === 'true'}|${query}`;
 }
 
 export function matchesQuery(pin: Pin, query: string): boolean {
@@ -303,11 +318,22 @@ export function renderSection(section: HTMLElement): void {
     );
   list.replaceChildren(...items);
 
+  const collapsed = view.collapsed === true;
+  section.classList.toggle('prg-collapsed', collapsed);
+  const toggle = section.querySelector<HTMLButtonElement>('button.prg-collapse');
+  if (toggle) {
+    toggle.setAttribute('aria-expanded', String(!collapsed));
+    toggle.title = collapsed ? 'Expand' : 'Collapse';
+    toggle
+      .querySelector('svg')
+      ?.replaceWith(createIcon(collapsed ? 'chevron-right' : 'chevron-down', doc));
+  }
+  (list as HTMLElement).hidden = collapsed;
   const search = section.querySelector<HTMLElement>('.prg-search');
-  if (search) search.hidden = pins.length === 0;
+  if (search) search.hidden = collapsed || pins.length === 0;
   const more = moreButton(section);
   if (more) {
-    more.hidden = Boolean(query) || pins.length <= limit;
+    more.hidden = collapsed || Boolean(query) || pins.length <= limit;
     more.textContent = expanded ? 'Show less' : 'Show more';
     more.setAttribute('aria-expanded', String(expanded));
   }
