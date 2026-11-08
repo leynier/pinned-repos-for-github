@@ -133,3 +133,21 @@ export function readRepoMeta(doc: Document = document): (RepoRef & { repoId: num
   if (!ref || !Number.isSafeInteger(id) || id <= 0) return null;
   return { ...ref, repoId: id };
 }
+
+/** The health check needs the user's session: a 404 while signed out means nothing. */
+export function isSignedIn(doc: Document = document): boolean {
+  const login = doc.querySelector<HTMLMetaElement>('meta[name="user-login"]')?.content;
+  return Boolean(login) || doc.body?.classList.contains('logged-in') === true;
+}
+
+/** Owner types visible in Top repositories (round avatar = user), keyed by lowercase owner. */
+export function readOwnerTypes(items: readonly Element[]): Map<string, boolean> {
+  const owners = new Map<string, boolean>();
+  for (const item of items) {
+    const ref = repoRefFromItem(item);
+    const avatar = item.querySelector('img.avatar');
+    if (ref && avatar)
+      owners.set(ref.owner.toLowerCase(), avatar.classList.contains('avatar-user'));
+  }
+  return owners;
+}

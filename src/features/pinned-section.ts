@@ -10,6 +10,8 @@ import { formatRepo, repoKey } from '../storage/repo-ref';
 import type { Pin } from '../storage/pins';
 
 export const EMPTY_TEXT = 'Hover a repository below and click 📌 to pin it.';
+export const MISSING_TEXT =
+  'Not found or no access. It may have been deleted, made private, or you may have lost access.';
 export const NO_MATCH_TEXT = 'No pinned repositories match.';
 
 export interface SectionActions {
@@ -99,6 +101,7 @@ export function buildPinItem(
   actions: SectionActions,
   template: HTMLLIElement | undefined,
   doc: Document = document,
+  missing = false,
 ): HTMLLIElement {
   const item = template ? (template.cloneNode(true) as HTMLLIElement) : buildItemFromScratch(doc);
   // The template row may already carry our 📌 toggle; clones never get its listener.
@@ -108,6 +111,14 @@ export function buildPinItem(
   item.setAttribute(OWN_ATTR, 'item');
   item.dataset.prgRepo = repoKey(pin);
   fillLinks(item, pin, doc);
+  if (missing) {
+    item.classList.add('prg-missing');
+    for (const link of item.querySelectorAll('a')) {
+      link.title = MISSING_TEXT;
+      link.removeAttribute('data-hovercard-url');
+    }
+    item.setAttribute('aria-description', MISSING_TEXT);
+  }
   const row = item.firstElementChild ?? item;
   row.append(buildUnpinButton(pin, actions, doc));
   return item;
@@ -124,6 +135,8 @@ function buildMessageItem(text: string, kind: string, doc: Document): HTMLLIElem
 export interface SectionView {
   /** Pins shown before "Show more" (all of them while filtering). */
   limit: number;
+  /** Lowercase `owner/name` keys that the last check could not find. */
+  missing?: ReadonlySet<string>;
 }
 
 interface SectionState {
@@ -254,7 +267,10 @@ export function buildSection(kind: SectionKind, topRepos: HTMLElement): HTMLElem
 /** Everything that affects the rendered rows; when it is unchanged the rows are left alone. */
 function renderSignature(section: HTMLElement, state: SectionState): string {
   const pins = state.pins
-    .map((pin) => `${pin.owner}/${pin.name}:${pin.ownerIsUser ? 'u' : 'o'}`)
+    .map(
+      (pin) =>
+        `${pin.owner}/${pin.name}:${pin.ownerIsUser ? 'u' : 'o'}${state.view.missing?.has(repoKey(pin)) ? 'm' : ''}`,
+    )
     .join(',');
   const query = filterInput(section)?.value ?? '';
   return `${pins}|${state.view.limit}|${section.dataset.prgExpanded === 'true'}|${query}`;
@@ -281,7 +297,10 @@ export function renderSection(section: HTMLElement): void {
   let items: HTMLLIElement[];
   if (pins.length === 0) items = [buildMessageItem(EMPTY_TEXT, 'empty', doc)];
   else if (matches.length === 0) items = [buildMessageItem(NO_MATCH_TEXT, 'no-match', doc)];
-  else items = visible.map((pin) => buildPinItem(pin, actions, template, doc));
+  else
+    items = visible.map((pin) =>
+      buildPinItem(pin, actions, template, doc, view.missing?.has(repoKey(pin)) ?? false),
+    );
   list.replaceChildren(...items);
 
   const search = section.querySelector<HTMLElement>('.prg-search');

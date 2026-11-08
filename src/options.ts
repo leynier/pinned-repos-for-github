@@ -1,5 +1,5 @@
-import { renderPinList } from './popup';
-import { getPins, savePins, watchPins } from './storage/pins';
+import { getPins, savePins } from './storage/pins';
+import { mountPinList } from './ui/pin-list';
 import { getSettings, setVisibleCount, settingsItem, watchSettings } from './storage/settings';
 import { buildExport, exportFileName, parseImport, planImport, type ImportMode } from './transfer';
 
@@ -79,8 +79,7 @@ export async function mountOptions(doc: Document): Promise<() => void> {
     if (result.ok) form.reset();
   });
 
-  renderPinList(doc, await getPins());
-  const unwatchPins = watchPins((pins) => renderPinList(doc, pins));
+  const unwatchPins = await mountPinList(doc);
   const unwatchSettings = watchSettings((settings) => {
     if (doc.activeElement !== visibleCount) visibleCount.value = String(settings.visibleCount);
   });

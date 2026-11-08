@@ -358,3 +358,20 @@ describe('isOwnMutation', () => {
     ).toBe(false);
   });
 });
+
+describe('missing pins', () => {
+  it('dims pins the health check could not find', () => {
+    const doc = loadFixture('dashboard.html');
+    const section = ensurePinnedSection(
+      'desktop',
+      pins,
+      { limit: 7, missing: new Set(['mona/dotfiles']) },
+      noopSection,
+      doc,
+    )!;
+    const [ok, missing] = section.querySelectorAll('li.prg-item');
+    expect(ok!.classList.contains('prg-missing')).toBe(false);
+    expect(missing!.classList.contains('prg-missing')).toBe(true);
+    expect(missing!.querySelector('a')!.title).toMatch(/Not found or no access/);
+  });
+});

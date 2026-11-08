@@ -1,11 +1,19 @@
 import { isDashboard, hasRepoHeader, utils } from 'github-url-detection';
-import { SECTION_IDS, readRepoMeta } from './dom/anchors';
+import {
+  SECTION_IDS,
+  findAllTopRepoItems,
+  isSignedIn,
+  readOwnerTypes,
+  readRepoMeta,
+} from './dom/anchors';
 import { ensurePinnedSection, type SectionActions } from './features/pinned-section';
 import { decorateTopRepoItems, type ToggleActions } from './features/top-repo-pin';
 import { ensureRepoPinButton, type RepoButtonActions } from './features/repo-pin-button';
 import { observePage, type ObserverHandle } from './lib/observe';
+import { getMissingKeys, runHealthCheck, watchMissingKeys } from './storage/health';
 import {
   getPins,
+  learnOwnerTypes,
   reconcileRepoIdentity,
   removePin,
   togglePin,
@@ -23,7 +31,12 @@ import { getSettings, watchSettings } from './storage/settings';
  */
 export async function startContent(doc: Document = document): Promise<() => void> {
   let pins: Pin[] = await getPins();
-  let view = { limit: (await getSettings()).visibleCount };
+  let limit = (await getSettings()).visibleCount;
+  let missing = await getMissingKeys();
+  let view = { limit, missing };
+  let healthStarted = false;
+  let ownerTypesLearned = false;
+  let stopped = false;
   let pinnedKeys = new Set(pins.map(repoKey));
   let reconciledUrl = '';
   const isPinnedKey = (key: string) => pinnedKeys.has(key);
@@ -52,12 +65,37 @@ export async function startContent(doc: Document = document): Promise<() => void
     return info ? parseRepoRef(info.nameWithOwner) : null;
   };
 
+  /** Round avatars for pins added from the popup or an import, using what Top repositories shows. */
+  const learnOwnerTypesOnce = () => {
+    if (ownerTypesLearned || !pins.some((pin) => pin.ownerIsUser === undefined)) return;
+    const owners = readOwnerTypes(findAllTopRepoItems(doc));
+    if (owners.size === 0) return;
+    ownerTypesLearned = true;
+    void learnOwnerTypes(owners).catch(report);
+  };
+
+  /** Checks for renamed or deleted pins in the background, a few at a time, once per page load. */
+  const startHealthCheckOnce = () => {
+    if (healthStarted || pins.length === 0 || !isSignedIn(doc)) return;
+    healthStarted = true;
+    setTimeout(() => {
+      if (stopped) return;
+      void runHealthCheck({
+        pins,
+        fetchImpl: (input, init) => fetch(input, init),
+        shouldStop: () => stopped,
+      }).catch(report);
+    }, 5_000);
+  };
+
   const sync = () => {
     const url = new URL(doc.location.href);
     if (isDashboard(url)) {
       ensurePinnedSection('desktop', pins, view, sectionActions, doc);
       ensurePinnedSection('mobile', pins, view, sectionActions, doc);
       decorateTopRepoItems(isPinnedKey, toggleActions, doc);
+      learnOwnerTypesOnce();
+      startHealthCheckOnce();
     } else {
       for (const id of Object.values(SECTION_IDS)) doc.getElementById(id)?.remove();
     }
@@ -90,13 +128,21 @@ export async function startContent(doc: Document = document): Promise<() => void
   });
 
   const unwatchSettings = watchSettings((settings) => {
-    view = { limit: settings.visibleCount };
+    limit = settings.visibleCount;
+    view = { limit, missing };
+    handle.schedule();
+  });
+  const unwatchMissing = watchMissingKeys((keys) => {
+    missing = keys;
+    view = { limit, missing };
     handle.schedule();
   });
 
   return () => {
+    stopped = true;
     unwatch();
     unwatchSettings();
+    unwatchMissing();
     handle.disconnect();
   };
 }

@@ -66,3 +66,13 @@ li:focus-within > div > .prg-row-button,
     opacity: 1;
   }
 }
+
+.prg-missing img,
+.prg-missing a.markdown-title {
+  opacity: 0.55;
+}
+
+.prg-missing a.markdown-title {
+  text-decoration: line-through;
+  text-decoration-color: var(--fgColor-muted, var(--color-fg-muted));
+}
