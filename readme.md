@@ -68,9 +68,13 @@ GitHub selectors live in `src/dom/anchors.ts`, and the recorded page structure i
 
 Ideas, bug reports, and pull requests are welcome. If GitHub changes its dashboard and the section stops appearing, please [open an issue](https://github.com/leynier/pinned-repos-for-github/issues).
 
-## Privacy
+## Privacy and security
 
-No tracking, no analytics, no servers. Read the [privacy policy](privacy.md).
+No tracking, no analytics, no servers. Read the [privacy policy](privacy.md). To report a vulnerability, see [security.md](security.md).
+
+## License
+
+[MIT](license.md)
 
 ---
 
