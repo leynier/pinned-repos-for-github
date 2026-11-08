@@ -1,7 +1,9 @@
 import { describe, expect, it, vi } from 'vitest';
 import {
+  DRAWER_ID,
   SECTION_IDS,
   findAllTopRepoItems,
+  findDrawerTopRepos,
   findDesktopTopRepos,
   findMobileTopRepos,
   findRepoHeaderActions,
@@ -11,6 +13,7 @@ import {
   repoRefFromItem,
 } from '../../src/dom/anchors';
 import { EMPTY_TEXT, NO_MATCH_TEXT, ensurePinnedSection } from '../../src/features/pinned-section';
+import { ensureDrawerSection } from '../../src/features/drawer-section';
 import { decorateTopRepoItems } from '../../src/features/top-repo-pin';
 import { REPO_BUTTON_ATTR, ensureRepoPinButton } from '../../src/features/repo-pin-button';
 import { isOwnMutation } from '../../src/lib/observe';
@@ -416,5 +419,81 @@ describe('collapsing', () => {
 
     toggle.click();
     expect(setCollapsed).toHaveBeenLastCalledWith(false);
+  });
+});
+
+describe('navigation drawer', () => {
+  const many: Pin[] = Array.from({ length: 9 }, (_, i) => ({
+    owner: 'mona',
+    name: `repo${i + 1}`,
+    addedAt: i,
+  }));
+  const labels = (group: HTMLElement) =>
+    [
+      ...group.querySelectorAll(
+        'li[data-prg="drawer-item"] [data-component="ActionList.Item.Label"]',
+      ),
+    ].map((label) => label.textContent);
+
+  it('adds a Pinned repositories group and a divider above Top repositories, once', () => {
+    const doc = loadFixture('nav-drawer.html');
+    for (let i = 0; i < 3; i++) ensureDrawerSection(pins, view, doc);
+    const top = findDrawerTopRepos(doc)!;
+    const group = doc.getElementById(DRAWER_ID)!;
+    expect(doc.querySelectorAll(`#${DRAWER_ID}`)).toHaveLength(1);
+    expect(group.nextElementSibling?.getAttribute('data-component')).toBe('ActionList.Divider');
+    expect(group.nextElementSibling?.nextElementSibling).toBe(top);
+    expect(group.querySelector('[data-component="NavList.GroupHeading"]')!.textContent).toBe(
+      'Pinned repositories',
+    );
+    expect(group.querySelector('button')).toBeNull(); // No search button.
+    expect(labels(group)).toEqual(['acme/api-server', 'mona/dotfiles']);
+    const link = group.querySelector('a')!;
+    expect(link.getAttribute('href')).toBe('/acme/api-server');
+    expect(link.classList.contains('prc-ActionList-ActionListContent-KBb8-')).toBe(true);
+    expect(group.querySelector('img')!.getAttribute('src')).toBe(
+      'https://github.com/acme.png?size=32',
+    );
+  });
+
+  it('never duplicates ids, test ids or label references', () => {
+    const doc = loadFixture('nav-drawer.html');
+    const group = ensureDrawerSection(pins, view, doc)!;
+    const ids = [...doc.querySelectorAll('[id]')].map((el) => el.id);
+    expect(new Set(ids).size).toBe(ids.length);
+    expect(group.querySelector('[data-testid]')).toBeNull();
+    for (const link of group.querySelectorAll('a')) {
+      expect(
+        doc.getElementById(link.getAttribute('aria-labelledby')!)?.closest(`#${DRAWER_ID}`),
+      ).toBe(group);
+    }
+  });
+
+  it('shows the first N pins with Show more', () => {
+    const doc = loadFixture('nav-drawer.html');
+    const group = ensureDrawerSection(many, view, doc)!;
+    expect(labels(group)).toHaveLength(7);
+    const more = group.querySelector<HTMLButtonElement>('li[data-prg="drawer-more"] button')!;
+    expect(more.textContent).toBe('Show more');
+    more.click();
+    expect(labels(group)).toHaveLength(9);
+    expect(group.querySelector('li[data-prg="drawer-more"] button')!.textContent).toBe('Show less');
+  });
+
+  it('marks missing pins and removes the group when there are no pins or no drawer', () => {
+    const doc = loadFixture('nav-drawer.html');
+    const group = ensureDrawerSection(
+      pins,
+      { limit: 7, missing: new Set(['mona/dotfiles']) },
+      doc,
+    )!;
+    expect(group.querySelectorAll('.prg-missing')).toHaveLength(1);
+    expect(ensureDrawerSection([], view, doc)).toBeNull();
+    expect(doc.getElementById(DRAWER_ID)).toBeNull();
+    expect(doc.getElementById(`${DRAWER_ID}-divider`)).toBeNull();
+
+    const closed = loadFixture('nav-drawer.html');
+    closed.querySelector('[role="dialog"]')!.remove();
+    expect(ensureDrawerSection(pins, view, closed)).toBeNull();
   });
 });
