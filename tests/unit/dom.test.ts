@@ -122,6 +122,16 @@ describe('pinned section', () => {
     expect(section.querySelectorAll('li')).toHaveLength(2);
   });
 
+  it('does not copy the 📌 toggle from an already decorated template row', () => {
+    const doc = loadFixture('dashboard.html');
+    decorateTopRepoItems(() => false, { toggle: vi.fn() }, doc);
+    const section = ensurePinnedSection('desktop', pins, view, noopSection, doc)!;
+    expect(section.querySelectorAll('button[data-prg-pin]')).toHaveLength(0);
+    for (const item of section.querySelectorAll('li.prg-item')) {
+      expect(item.querySelectorAll('button')).toHaveLength(1);
+    }
+  });
+
   it('unpins from the row button', () => {
     const doc = loadFixture('dashboard.html');
     const unpin = vi.fn();

@@ -101,6 +101,8 @@ export function buildPinItem(
   doc: Document = document,
 ): HTMLLIElement {
   const item = template ? (template.cloneNode(true) as HTMLLIElement) : buildItemFromScratch(doc);
+  // The template row may already carry our 📌 toggle; clones never get its listener.
+  item.querySelectorAll(`[${OWN_ATTR}]`).forEach((node) => node.remove());
   scrub(item);
   item.className = 'prg-item';
   item.setAttribute(OWN_ATTR, 'item');
