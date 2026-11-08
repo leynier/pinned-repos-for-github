@@ -10,6 +10,7 @@ import { formatRepo, repoKey } from '../storage/repo-ref';
 import type { Pin } from '../storage/pins';
 
 export const EMPTY_TEXT = 'Hover a repository below and click 📌 to pin it.';
+export const NO_MATCH_TEXT = 'No pinned repositories match.';
 
 export interface SectionActions {
   unpin(pin: Pin): void;
@@ -110,27 +111,109 @@ export function buildPinItem(
   return item;
 }
 
-function buildEmptyItem(doc: Document): HTMLLIElement {
+function buildMessageItem(text: string, kind: string, doc: Document): HTMLLIElement {
   const item = doc.createElement('li');
   item.className = 'prg-empty color-fg-muted f6 mt-2';
-  item.setAttribute(OWN_ATTR, 'empty');
-  item.textContent = EMPTY_TEXT;
+  item.setAttribute(OWN_ATTR, kind);
+  item.textContent = text;
   return item;
+}
+
+export interface SectionView {
+  /** Pins shown before "Show more" (all of them while filtering). */
+  limit: number;
+}
+
+interface SectionState {
+  pins: readonly Pin[];
+  view: SectionView;
+  actions: SectionActions;
+  template: HTMLLIElement | undefined;
+}
+
+const sectionState = new WeakMap<HTMLElement, SectionState>();
+
+function filterInput(section: HTMLElement): HTMLInputElement | null {
+  return section.querySelector<HTMLInputElement>('input.prg-filter');
+}
+
+function moreButton(section: HTMLElement): HTMLButtonElement | null {
+  return section.querySelector<HTMLButtonElement>('button.prg-more');
+}
+
+/** Reuses GitHub's search box markup, rewired to filter the pins instead of GitHub's list. */
+function setUpFilter(section: HTMLElement, kind: SectionKind, list: HTMLElement): void {
+  const doc = section.ownerDocument;
+  let search = section.querySelector<HTMLElement>('[role="search"]');
+  let input = search?.querySelector<HTMLInputElement>('input[type="text"], input:not([type])');
+  if (!search || !input) {
+    search?.remove();
+    search = doc.createElement('div');
+    search.className = 'mt-2 tmp-mb-3';
+    search.setAttribute('role', 'search');
+    input = doc.createElement('input');
+    input.type = 'text';
+    input.className = 'form-control input-contrast input-block tmp-mb-3';
+    search.append(input);
+    list.before(search);
+  }
+  search.querySelectorAll('input').forEach((other) => other !== input && other.remove());
+  search.classList.add('prg-search');
+  search.setAttribute('aria-label', 'Pinned repositories');
+  input.id = `${SECTION_IDS[kind]}-filter`;
+  input.classList.add('prg-filter');
+  input.value = '';
+  input.placeholder = 'Find a repository…';
+  input.setAttribute('aria-label', 'Find a pinned repository…');
+  input.autocomplete = 'off';
+  input.addEventListener('input', () => renderSection(section));
+  input.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      section
+        .querySelector<HTMLAnchorElement>('li.prg-item a.markdown-title, li.prg-item a')
+        ?.click();
+    } else if (event.key === 'Escape' && input.value) {
+      input.value = '';
+      renderSection(section);
+    }
+  });
+}
+
+/** Reuses GitHub's "Show more" button look; it expands to every pin, then collapses again. */
+function setUpMoreButton(
+  section: HTMLElement,
+  list: HTMLElement,
+  source: HTMLElement | null,
+): void {
+  const doc = section.ownerDocument;
+  const button = doc.createElement('button');
+  button.type = 'button';
+  button.className = source?.className ?? 'width-full text-left btn-link f6 Link--muted tmp-mt-3';
+  button.classList.add('prg-more');
+  button.addEventListener('click', () => {
+    section.dataset.prgExpanded = String(section.dataset.prgExpanded !== 'true');
+    renderSection(section);
+  });
+  const wrapper = doc.createElement('div');
+  wrapper.className = 'prg-more-wrapper';
+  wrapper.append(button);
+  list.after(wrapper);
 }
 
 /**
  * Clones GitHub's "Top repositories" block so the section inherits the native look (spacing,
- * typography, light/dark colors), then strips everything interactive that belongs to GitHub.
+ * typography, light/dark colors, the "New" button and the search box), then rewires or strips
+ * everything interactive that belongs to GitHub's list.
  */
 export function buildSection(kind: SectionKind, topRepos: HTMLElement): HTMLElement {
   const doc = topRepos.ownerDocument;
   const section = topRepos.cloneNode(true) as HTMLElement;
   const headingId = `${SECTION_IDS[kind]}-heading`;
 
-  // Search box, "Show more" form and the "New" button belong to GitHub's list only.
-  section
-    .querySelectorAll('[role="search"], form, input, a[href="/new"]')
-    .forEach((node) => node.remove());
+  const moreSource = section.querySelector<HTMLElement>('form button');
+  // The "Show more" form pages through GitHub's list; ours is rebuilt below.
+  section.querySelectorAll('form').forEach((node) => node.remove());
 
   const [heading, ...innerHeadings] = section.querySelectorAll('h2');
   // The mobile copy nests a hidden desktop header; keep only the outermost heading.
@@ -160,28 +243,54 @@ export function buildSection(kind: SectionKind, topRepos: HTMLElement): HTMLElem
   }
   list.classList.add('prg-list');
   list.replaceChildren();
+
+  setUpFilter(section, kind, list);
+  setUpMoreButton(section, list, moreSource);
   return section;
 }
 
-/** Everything that affects how the rows look; when it is unchanged the rows are left alone. */
-function renderSignature(pins: readonly Pin[]): string {
-  return pins.map((pin) => `${pin.owner}/${pin.name}:${pin.ownerIsUser ? 'u' : 'o'}`).join(',');
+/** Everything that affects the rendered rows; when it is unchanged the rows are left alone. */
+function renderSignature(section: HTMLElement, state: SectionState): string {
+  const pins = state.pins
+    .map((pin) => `${pin.owner}/${pin.name}:${pin.ownerIsUser ? 'u' : 'o'}`)
+    .join(',');
+  const query = filterInput(section)?.value ?? '';
+  return `${pins}|${state.view.limit}|${section.dataset.prgExpanded === 'true'}|${query}`;
 }
 
-export function renderSectionItems(
-  section: HTMLElement,
-  pins: readonly Pin[],
-  actions: SectionActions,
-  template: HTMLLIElement | undefined,
-): void {
+export function matchesQuery(pin: Pin, query: string): boolean {
+  return formatRepo(pin).toLowerCase().includes(query.trim().toLowerCase());
+}
+
+/** Renders the rows for the current pins, filter text and expanded state. */
+export function renderSection(section: HTMLElement): void {
+  const state = sectionState.get(section);
   const list = section.querySelector('ul.prg-list');
-  if (!list) return;
+  if (!state || !list) return;
   const doc = section.ownerDocument;
-  const items = pins.length
-    ? pins.map((pin) => buildPinItem(pin, actions, template, doc))
-    : [buildEmptyItem(doc)];
+  const { pins, view, actions, template } = state;
+  const limit = Math.max(1, view.limit);
+  const input = filterInput(section);
+  const query = input?.value.trim() ?? '';
+  const expanded = section.dataset.prgExpanded === 'true';
+
+  const matches = query ? pins.filter((pin) => matchesQuery(pin, query)) : pins;
+  const visible = query || expanded ? matches : matches.slice(0, limit);
+  let items: HTMLLIElement[];
+  if (pins.length === 0) items = [buildMessageItem(EMPTY_TEXT, 'empty', doc)];
+  else if (matches.length === 0) items = [buildMessageItem(NO_MATCH_TEXT, 'no-match', doc)];
+  else items = visible.map((pin) => buildPinItem(pin, actions, template, doc));
   list.replaceChildren(...items);
-  section.dataset.prgRendered = renderSignature(pins);
+
+  const search = section.querySelector<HTMLElement>('.prg-search');
+  if (search) search.hidden = pins.length === 0;
+  const more = moreButton(section);
+  if (more) {
+    more.hidden = Boolean(query) || pins.length <= limit;
+    more.textContent = expanded ? 'Show less' : 'Show more';
+    more.setAttribute('aria-expanded', String(expanded));
+  }
+  section.dataset.prgRendered = renderSignature(section, state);
 }
 
 /**
@@ -191,6 +300,7 @@ export function renderSectionItems(
 export function ensurePinnedSection(
   kind: SectionKind,
   pins: readonly Pin[],
+  view: SectionView,
   actions: SectionActions,
   doc: Document = document,
 ): HTMLElement | null {
@@ -201,16 +311,14 @@ export function ensurePinnedSection(
     return null;
   }
 
-  const template = findRepoItems(topRepos)[0];
   let section = existing;
   if (!section || section.nextElementSibling !== topRepos) {
     section?.remove();
     section = buildSection(kind, topRepos);
     topRepos.before(section);
-    section.dataset.prgRendered = '\u0000'; // Force the first render.
   }
-  if (section.dataset.prgRendered !== renderSignature(pins)) {
-    renderSectionItems(section, pins, actions, template);
-  }
+  const state: SectionState = { pins, view, actions, template: findRepoItems(topRepos)[0] };
+  sectionState.set(section, state);
+  if (section.dataset.prgRendered !== renderSignature(section, state)) renderSection(section);
   return section;
 }

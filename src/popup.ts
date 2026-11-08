@@ -8,6 +8,7 @@ import {
   type Pin,
 } from './storage/pins';
 import { formatRepo, parseRepoRef } from './storage/repo-ref';
+import { getSettings, setVisibleCount, watchSettings } from './storage/settings';
 
 const MESSAGES: Record<Exclude<AddPinResult, 'added'>, string> = {
   exists: 'That repository is already pinned.',
@@ -78,7 +79,20 @@ export async function mountPopup(doc: Document): Promise<() => void> {
     input.focus();
   });
 
+  const visibleCount = byId<HTMLInputElement>(doc, 'visible-count');
+  visibleCount.value = String((await getSettings()).visibleCount);
+  visibleCount.addEventListener('change', async () => {
+    visibleCount.value = String(await setVisibleCount(visibleCount.value));
+  });
+
   renderPinList(doc, await getPins());
   input.focus();
-  return watchPins((pins) => renderPinList(doc, pins));
+  const unwatchPins = watchPins((pins) => renderPinList(doc, pins));
+  const unwatchSettings = watchSettings((settings) => {
+    if (doc.activeElement !== visibleCount) visibleCount.value = String(settings.visibleCount);
+  });
+  return () => {
+    unwatchPins();
+    unwatchSettings();
+  };
 }
