@@ -8,34 +8,42 @@ Guidance for coding agents working on Pinned Repos for GitHub, a Chrome MV3 exte
 pnpm install         # also runs `wxt prepare` (generates .wxt/ types)
 pnpm compile         # type-check
 pnpm test            # Vitest unit tests (happy-dom + WXT fake browser)
-pnpm e2e             # production build + Playwright smoke tests with the extension loaded
+pnpm e2e             # production build + Playwright tests with the extension loaded
+pnpm lint:firefox    # Firefox build + web-ext lint
 pnpm format          # Prettier
-pnpm build           # .output/chrome-mv3, load it with "Load unpacked"
-pnpm zip             # Chrome Web Store package
+pnpm build           # .output/chrome-mv3 (build:firefox → firefox-mv2, build:edge → edge-mv3)
+pnpm zip             # store packages (zip:firefox also writes the sources zip AMO needs)
 pnpm icons           # regenerate public/icon/*.png from scripts/generate-icons.mjs
 ```
 
-Before finishing a change, run `pnpm compile`, `pnpm test`, `pnpm e2e` and `pnpm format:check`. The e2e tests need Playwright's Chromium (`pnpm exec playwright install chromium`).
+Before finishing a change, run `pnpm compile`, `pnpm test`, `pnpm e2e`, `pnpm lint:firefox` and `pnpm format:check` (CI runs the same). The e2e tests need Playwright's Chromium (`pnpm exec playwright install chromium`).
 
 ## Layout
 
 - `entrypoints/github.content/`: the only content script, on `https://github.com/*`, plus its CSS. One script for every route, because GitHub navigates between the dashboard and repositories without full reloads.
-- `entrypoints/popup/` and `src/popup.ts`: the popup (list, add, unpin, how many pins the sidebar shows).
+- `entrypoints/popup/` and `src/popup.ts`: the popup (add, list, how many pins the sidebar shows).
+- `entrypoints/options/`, `src/options.ts` and `src/transfer.ts`: the options page, JSON import (merge or replace) and export.
+- `src/ui/pin-list.ts`: the live pin list shared by the popup and the options page.
 - `src/content.ts`: wires storage to the page; routes with `github-url-detection`.
 - `src/dom/anchors.ts`: every GitHub selector, each with a primary selector (id, ARIA or `data-testid`) and a text fallback.
 - `src/features/`: the pinned section, the 📌 toggle on Top repositories rows, and the repository header Pin button.
 - `src/lib/observe.ts`: the single `MutationObserver` and soft-navigation hooks.
-- `src/storage/`: typed `chrome.storage.sync` access (`sync:pins`, `sync:settings`) and `owner/name` parsing.
+- `src/storage/pins.ts`: pins in `chrome.storage.sync`, chunked as `pins:index` + `pins:0…N` (each under 7 KB, 90 KB budget, up to 500 pins); the v1 `pins` key is migrated on first read.
+- `src/storage/settings.ts`: `sync:settings` (`visibleCount`, `collapsed`).
+- `src/storage/health.ts`: the background availability check and its per-device results (`local:pinHealth`).
+- `src/storage/repo-ref.ts`: `owner/name` parsing and keys.
 - `tests/fixtures/`: recorded GitHub page structure, used by unit and e2e tests.
 
 ## Rules
 
-- Keep permissions to `storage` and `https://github.com/*`. No GitHub API, tokens, servers, analytics or remote code. Update `privacy.md` and `security.md` if that ever changes.
+- Keep permissions to `storage` and `https://github.com/*`. No GitHub API, tokens, servers, analytics or remote code, and no requests to hosts other than `github.com`. Update `privacy.md` and `security.md` if that ever changes.
 - Never select by hashed or generated class names (`prc-*`, `*__abc12`). Add new selectors only to `src/dom/anchors.ts`, with a fallback. When an anchor is missing, do nothing and log nothing.
 - DOM work must be idempotent: `sync()` runs on every page mutation. Mark created nodes with `data-prg` so the observer ignores them, and never insert into React-managed lists except at the end.
 - Build UI from cloned GitHub markup or DOM APIs with `textContent`. Never assign untrusted data (repository names, storage values) to `innerHTML`.
 - Pins are always shown sorted with `sortPins` (owner, then name, case-insensitive, natural numbers). There is no manual order. The sidebar shows `visibleCount` pins (default 7) before _Show more_; the filter always searches every pin.
-- `chrome.storage.sync` allows 8 KB per key, so pins are capped at `MAX_PINS` (100) until storage is chunked.
+- Always write pins through `src/storage/pins.ts`: it writes the index and every chunk in one `set` call. Check `fitsQuota` before writing a list you didn't build with `addPin`.
+- The availability check (`src/storage/health.ts`) must stay polite: same-origin `HEAD` requests only, signed in only, one at a time with a pause, at most `MAX_CHECKS_PER_RUN` per run and each pin at most once a day. A 404 marks a pin missing; it never unpins it. Update `privacy.md` if its network behavior changes.
+- Firefox: content-script requests that need the user's session use the page's `content.fetch` (see `pageFetch` in `src/content.ts`). The gecko id in `wxt.config.ts` is permanent once published.
 - Fixtures are committed to a public repository: use fictional repositories and strip ids, analytics attributes and HMACs. When GitHub's DOM changes, re-inspect the real page, update the fixture and the date comment in it, then fix `anchors.ts`.
 - User-facing text, docs and the Store listing are in English. "GitHub" always goes last in the product name.
 
