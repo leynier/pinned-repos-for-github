@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Pinned Repos for GitHub</title>
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <main>
+      <header>
+        <h1>Pinned repositories</h1>
+        <span id="count" class="muted"></span>
+      </header>
+      <form id="add-form" autocomplete="off">
+        <label for="repo-input" class="visually-hidden">Repository</label>
+        <input
+          id="repo-input"
+          name="repo"
+          type="text"
+          placeholder="owner/repo or GitHub URL"
+          spellcheck="false"
+        />
+        <button type="submit">Pin</button>
+      </form>
+      <p id="message" role="status" class="muted"></p>
+      <ul id="pin-list"></ul>
+    </main>
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>
