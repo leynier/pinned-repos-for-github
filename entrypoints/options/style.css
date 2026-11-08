@@ -1,0 +1,78 @@
+body {
+  width: auto;
+}
+
+main {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 32px 16px;
+}
+
+h1 {
+  margin-bottom: 24px;
+  font-size: 20px;
+}
+
+h2 {
+  margin: 0 0 8px;
+  font-size: 15px;
+}
+
+section {
+  margin-bottom: 28px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+section:last-child {
+  border-bottom: 0;
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.row input[type='number'] {
+  flex: 0 0 72px;
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+fieldset {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+
+fieldset label,
+fieldset input {
+  flex: none;
+}
+
+input[type='file'] {
+  border: 0;
+  padding: 0;
+}
+
+code {
+  padding: 1px 4px;
+  border-radius: 4px;
+  background: var(--hover);
+  font-size: 12px;
+}
+
+#pin-list {
+  max-height: none;
+}

@@ -1,9 +1,17 @@
+import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { chromium, test as base, type BrowserContext } from '@playwright/test';
 
 const root = resolve(import.meta.dirname, '../..');
 const extensionPath = resolve(root, '.output/chrome-mv3');
+/** Chrome derives an unpacked extension's id from the SHA-256 of its absolute path (a–p alphabet). */
+export const extensionId = [
+  ...createHash('sha256').update(extensionPath).digest('hex').slice(0, 32),
+]
+  .map((char) => String.fromCharCode(97 + parseInt(char, 16)))
+  .join('');
+
 const fixture = (name: string) => readFileSync(resolve(root, 'tests/fixtures', name), 'utf8');
 
 /**

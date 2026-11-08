@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="manifest.open_in_tab" content="true" />
+    <title>Pinned Repos for GitHub options</title>
+    <link rel="stylesheet" href="../popup/style.css" />
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <main>
+      <h1>Pinned Repos for GitHub</h1>
+
+      <section aria-labelledby="sidebar-heading">
+        <h2 id="sidebar-heading">Sidebar</h2>
+        <p class="row">
+          <label for="visible-count">Show</label>
+          <input id="visible-count" type="number" min="1" max="500" step="1" inputmode="numeric" />
+          <label for="visible-count">pinned repositories before “Show more”</label>
+        </p>
+      </section>
+
+      <section aria-labelledby="backup-heading">
+        <h2 id="backup-heading">Import and export</h2>
+        <p class="muted">
+          Export saves your pins and settings as JSON. Import accepts that file, or a JSON array of
+          <code>owner/repo</code> strings or GitHub URLs.
+        </p>
+        <p class="row">
+          <button id="export-button" type="button">Export pins</button>
+        </p>
+        <form id="import-form" class="stack">
+          <label for="import-file">JSON file</label>
+          <input id="import-file" type="file" accept="application/json,.json" required />
+          <fieldset>
+            <legend>When importing</legend>
+            <label
+              ><input type="radio" name="mode" value="merge" checked /> Add to my current
+              pins</label
+            >
+            <label
+              ><input type="radio" name="mode" value="replace" /> Replace my current pins and
+              settings</label
+            >
+          </fieldset>
+          <p class="row"><button type="submit">Import</button></p>
+        </form>
+        <p id="transfer-message" role="status" class="muted"></p>
+      </section>
+
+      <section aria-labelledby="pins-heading">
+        <header>
+          <h2 id="pins-heading">Pinned repositories</h2>
+          <span id="count" class="muted"></span>
+        </header>
+        <ul id="pin-list"></ul>
+      </section>
+    </main>
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>
