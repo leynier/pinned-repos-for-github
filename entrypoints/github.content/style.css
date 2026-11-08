@@ -52,7 +52,8 @@ li:focus-within > div > .prg-row-button,
   outline-offset: -2px;
 }
 
-.prg-pin-toggle[aria-pressed='true'] {
+.prg-pin-toggle[aria-pressed='true'],
+.prg-unpin {
   color: var(--fgColor-accent, var(--color-accent-fg));
 }
 

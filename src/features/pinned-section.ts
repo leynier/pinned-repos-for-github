@@ -50,7 +50,7 @@ function buildUnpinButton(pin: Pin, actions: SectionActions, doc: Document): HTM
   button.setAttribute(OWN_ATTR, 'unpin');
   button.setAttribute('aria-label', `Unpin ${formatRepo(pin)}`);
   button.title = 'Unpin';
-  button.append(createIcon('x', doc));
+  button.append(createIcon('pin-slash', doc));
   button.addEventListener('click', (event) => {
     event.preventDefault();
     event.stopPropagation();
