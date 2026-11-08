@@ -1,3 +1,4 @@
+import { browser } from 'wxt/browser';
 import {
   LIMIT_MESSAGE,
   MAX_PINS,
@@ -79,6 +80,10 @@ export async function mountPopup(doc: Document): Promise<() => void> {
     }
     input.focus();
   });
+
+  doc
+    .getElementById('open-options')
+    ?.addEventListener('click', () => void browser.runtime.openOptionsPage());
 
   const visibleCount = byId<HTMLInputElement>(doc, 'visible-count');
   visibleCount.value = String((await getSettings()).visibleCount);
