@@ -32,6 +32,9 @@ test('adds the pinned section above Top repositories and pins from the list', as
   await pinFromTopRepos(page, 'acme/api-server');
   await expect(pinnedNames(page)).toHaveText(['acme/api-server', 'mona/dotfiles']);
   await expect(page.locator('#pinned-repos-ext')).toHaveCount(1);
+  // Pinned rows only have the unpin button, never a copy of the 📌 toggle.
+  await expect(section.locator('button[data-prg-pin]')).toHaveCount(0);
+  await expect(section.locator('li.prg-item button')).toHaveCount(2);
 
   // Unpin from the section row.
   const row = section.locator('li.prg-item').filter({ hasText: 'acme/api-server' });
