@@ -21,9 +21,20 @@ function scrub(root: Element): void {
   }
 }
 
-function fromHtml(doc: Document, html: string): HTMLLIElement {
+/** Fallback markup when GitHub's own row is unavailable to clone. */
+function fallbackItem(doc: Document, child: 'link' | 'button'): HTMLLIElement {
   const item = doc.createElement('li');
-  item.innerHTML = html; // Static markup only; repository data is set with textContent below.
+  if (child === 'button') {
+    const button = doc.createElement('button');
+    button.type = 'button';
+    item.append(button);
+    return item;
+  }
+  const link = doc.createElement('a');
+  const label = doc.createElement('span');
+  label.setAttribute('data-component', 'ActionList.Item.Label');
+  link.append(label);
+  item.append(link);
   return item;
 }
 
@@ -34,9 +45,7 @@ function buildItem(
   template: Element | null,
   doc: Document,
 ): HTMLLIElement {
-  const item = template
-    ? (template.cloneNode(true) as HTMLLIElement)
-    : fromHtml(doc, `<a><span data-component="ActionList.Item.Label"></span></a>`);
+  const item = template ? (template.cloneNode(true) as HTMLLIElement) : fallbackItem(doc, 'link');
   scrub(item);
   item.setAttribute(OWN_ATTR, 'drawer-item');
   item.dataset.prgRepo = repoKey(pin);
@@ -96,9 +105,7 @@ function buildShowMore(
   doc: Document,
 ): HTMLLIElement {
   const source = top.querySelector(SHOW_MORE_SELECTOR)?.closest('li');
-  const item = source
-    ? (source.cloneNode(true) as HTMLLIElement)
-    : fromHtml(doc, '<button type="button"></button>');
+  const item = source ? (source.cloneNode(true) as HTMLLIElement) : fallbackItem(doc, 'button');
   scrub(item);
   item.setAttribute(OWN_ATTR, 'drawer-more');
   const button = item.querySelector('button');
